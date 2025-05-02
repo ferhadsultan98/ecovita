@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom WhatsApp Interface</title>
+  <style>
+    body {
+      fontFamily: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      backgroundColor: #ece5dd;
+    }
+    .container {
+      display: flex;
+      height: 100%;
+    }
+    .sidebar {
+      width: 30%;
+      backgroundColor: #075e54;
+      color: white;
+      padding: 10px;
+    }
+    .sidebarHeader {
+      display: flex;
+      justifyContent: spaceBetween;
+      alignItems: center;
+      paddingBottom: 10px;
+      borderBottom: 1px solid #fff;
+    }
+    .searchBar {
+      width: 100%;
+      padding: 5px;
+      marginBottom: 10px;
+    }
+    .contactList {
+      overflowY: auto;
+      height: 85%;
+    }
+    .contact {
+      display: flex;
+      alignItems: center;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .contact:hover {
+      backgroundColor: #054d44;
+    }
+    .contact img {
+      width: 40px;
+      height: 40px;
+      borderRadius: 50%;
+      marginRight: 10px;
+    }
+    .chatArea {
+      width: 70%;
+      display: flex;
+      flexDirection: column;
+    }
+    .chatHeader {
+      backgroundColor: #075e54;
+      color: white;
+      padding: 10px;
+      display: flex;
+      justifyContent: spaceBetween;
+      alignItems: center;
+    }
+    .messages {
+      flexGrow: 1;
+      padding: 20px;
+      overflowY: auto;
+      backgroundImage: url('https://www.transparenttextures.com/patterns/wave.png');
+    }
+    .message {
+      maxWidth: 60%;
+      marginBottom: 10px;
+      padding: 10px;
+      borderRadius: 10px;
+      backgroundColor: #fff;
+      position: relative;
+    }
+    .message:hover .smileIcon {
+      display: block;
+    }
+    .smileIcon {
+      display: none;
+      position: absolute;
+      left: -20px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+    .message .arrowIcon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      display: none;
+    }
+    .message:hover .arrowIcon {
+      display: block;
+    }
+    .contextMenu {
+      display: none;
+      position: absolute;
+      backgroundColor: #fff;
+      border: 1px solid #ccc;
+      padding: 5px;
+      boxShadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .contextMenuItem {
+      padding: 5px;
+      cursor: pointer;
+    }
+    .contextMenuItem:hover {
+      backgroundColor: #f0f0f0;
+    }
+    .profileSettings {
+      display: none;
+      width: 30%;
+      backgroundColor: #fff;
+      padding: 20px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+    }
+    .newChat {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    .newChatMenu {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 10px;
+      backgroundColor: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    @media (maxWidth: 768px) {
+      .sidebar {
+        width: 40%;
+      }
+      .chatArea {
+        width: 60%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="sidebarHeader">
+        <h3>WhatsApp</h3>
+        <div class="newChat" onclick="showNewChatMenu()">New Chat</div>
+      </div>
+      <input type="text" class="searchBar" placeholder="Search or start a new chat">
+      <div class="contactList">
+        <div class="contact" data-name="Ali" onclick="showChat('Ali')">
+          <img src="https://via.placeholder.com/40" alt="Ali">
+          <div>
+            <div>Ali</div>
+            <div>Hello, how are you?</div>
+          </div>
+        </div>
+        <div class="contact" data-name="Bahar" onclick="showChat('Bahar')">
+          <img src="https://via.placeholder.com/40" alt="Bahar">
+          <div>
+            <div>Bahar</div>
+            <div>Meeting at 2 PM</div>
+          </div>
+        </div>
+        <div class="contact" data-name="Cem" onclick="showChat('Cem')">
+          <img src="https://via.placeholder.com/40" alt="Cem">
+          <div>
+            <div>Cem</div>
+            <div>Call me back</div>
+          </div>
+        </div>
+        <div class="contact" data-name="Deniz" onclick="showChat('Deniz')">
+          <img src="https://via.placeholder.com/40" alt="Deniz">
+          <div>
+            <div>Deniz</div>
+            <div>Thanks for the help</div>
+          </div>
+        </div>
+        <div class="contact" onclick="showProfileSettings()">
+          <img src="https://via.placeholder.com/40" alt="Profile">
+          <div>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="chatArea">
+      <div class="chatHeader">
+        <h3 id="chatTitle">Chat</h3>
+      </div>
+      <div class="messages" id="messageArea">
+        <div class="message" oncontextmenu="showContextMenu(event)">Hi there!</div>
+        <div class="message" oncontextmenu="showContextMenu(event)">Great to hear from you.</div>
+      </div>
+      <div>
+        <input type="text" placeholder="Type a message" id="messageInput">
+      </div>
+    </div>
+  </div>
+  <div class="contextMenu" id="contextMenu">
+    <div class="contextMenuItem" onclick="archiveChat()">Archive chat</div>
+    <div class="contextMenuItem" onclick="lockChat()">Lock chat</div>
+    <div class="contextMenuItem" onclick="unpinChat()">Unpin chat</div>
+    <div class="contextMenuItem" onclick="markAsUnread()">Mark as unread</div>
+    <div class="contextMenuItem" onclick="deleteChat()">Delete chat</div>
+  </div>
+  <div class="profileSettings" id="profileSettings">
+    <h3>Profile Settings</h3>
+  </div>
+  <div class="newChatMenu" id="newChatMenu">
+    <div>New group</div>
+    <div>New contact</div>
+    <div>New community</div>
+  </div>
+
+  <script>
+    let currentChat = null;
+
+    function showChat(name) {
+      currentChat = name;
+      document.getElementById('chatTitle').textContent = name;
+      document.getElementById('messageArea').innerHTML = `
+        <div class="message" oncontextmenu="showContextMenu(event)">Hello from ${name}!</div>
+        <div class="message" oncontextmenu="showContextMenu(event)">How can I assist you today?</div>
+      `;
+    }
+
+    function showContextMenu(event) {
+      event.preventDefault();
+      const contextMenu = document.getElementById('contextMenu');
+      contextMenu.style.display = 'block';
+      contextMenu.style.left = event.pageX + 'px';
+      contextMenu.style.top = event.pageY + 'px';
+    }
+
+    document.addEventListener('click', function() {
+      document.getElementById('contextMenu').style.display = 'none';
+    });
+
+    function showProfileSettings() {
+      document.getElementById('profileSettings').style.display = 'block';
+    }
+
+    function hideProfileSettings() {
+      document.getElementById('profileSettings').style.display = 'none';
+    }
+
+    function showNewChatMenu() {
+      const newChatMenu = document.getElementById('newChatMenu');
+      newChatMenu.style.display = newChatMenu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    document.querySelectorAll('.message').forEach(message => {
+      message.addEventListener('mouseover', function() {
+        const smileIcon = document.createElement('span');
+        smileIcon.className = 'smileIcon';
+        smileIcon.textContent = '😊';
+        smileIcon.onclick = function() {
+          const heart = document.createElement('div');
+          heart.textContent = '❤️';
+          heart.style.marginLeft = '10px';
+          this.parentElement.appendChild(heart);
+        };
+        this.appendChild(smileIcon);
+
+        const arrowIcon = document.createElement('span');
+        arrowIcon.className = 'arrowIcon';
+        arrowIcon.textContent = '→';
+        arrowIcon.onclick = function(event) {
+          event.stopPropagation();
+          showMessageOptions(this.parentElement);
+        };
+        this.appendChild(arrowIcon);
+      });
+    });
+
+    function showMessageOptions(message) {
+      const options = document.createElement('div');
+      options.style.position = 'absolute';
+      options.style.backgroundColor = '#fff';
+      options.style.border = '1px solid #ccc';
+      options.style.padding = '5px';
+      options.innerHTML = `
+        <div onclick="editMessage('${message.textContent}')">Edit</div>
+        <div onclick="deleteMessage('${message.textContent}')">Delete</div>
+        <div onclick="replyMessage('${message.textContent}')">Reply</div>
+      `;
+      message.appendChild(options);
+    }
+
+    function editMessage(content) {
+      const newContent = prompt('Edit message:', content);
+      if (newContent) {
+        const messages = document.getElementById('messageArea').getElementsByClassName('message');
+        for (let msg of messages) {
+          if (msg.textContent === content) {
+            msg.textContent = newContent;
+            break;
+          }
+        }
+      }
+    }
+
+    function deleteMessage(content) {
+      const messages = document.getElementById('messageArea').getElementsByClassName('message');
+      for (let msg of messages) {
+        if (msg.textContent === content) {
+          msg.remove();
+          break;
+        }
+      }
+    }
+
+    function replyMessage(content) {
+      const reply = prompt('Reply to:', content);
+      if (reply) {
+        const messageArea = document.getElementById('messageArea');
+        const newMessage = document.createElement('div');
+        newMessage.className = 'message';
+        newMessage.textContent = reply;
+        newMessage.oncontextmenu = showContextMenu;
+        messageArea.appendChild(newMessage);
+      }
+    }
+
+    function archiveChat() {
+      alert('Chat archived');
+      document.getElementById('contextMenu').style.display = 'none';
+    }
+
+    function lockChat() {
+      alert('Chat locked');
+      document.getElementById('contextMenu').style.display = 'none';
+    }
+
+    function unpinChat() {
+      alert('Chat unpinned');
+      document.getElementById('contextMenu').style.display = 'none';
+    }
+
+    function markAsUnread() {
+      alert('Chat marked as unread');
+      document.getElementById('contextMenu').style.display = 'none';
+    }
+
+    function deleteChat() {
+      if (confirm('Are you sure you want to delete this chat?')) {
+        document.getElementById('messageArea').innerHTML = '';
+        document.getElementById('chatTitle').textContent = 'Chat';
+        document.getElementById('contextMenu').style.display = 'none';
+      }
+    }
+  </script>
+  </body>
+  </html>
+  

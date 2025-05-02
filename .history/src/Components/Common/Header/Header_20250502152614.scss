@@ -12,11 +12,12 @@ $scroll-bg: #ffffff;
   background: transparent;
   transition: all 0.3s ease;
   z-index: 1000;
-  padding: 1rem 0;
+  padding: 1.5rem 0;
 
   &.scrolled {
     background: $scroll-bg;
-    padding: 0.8rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
   }
 
   .header-container {
@@ -24,9 +25,9 @@ $scroll-bg: #ffffff;
     margin: 0 auto;
     display: flex;
     align-items: center;
-
     justify-content: space-between;
     gap: 1rem;
+    padding: 0 1rem;
   }
 
   .logo {
@@ -114,14 +115,15 @@ $scroll-bg: #ffffff;
 
     .header-container {
       padding: 0 1rem;
+      flex-wrap: wrap;
     }
 
     .products-button {
-      font-size: 14px !important;
-      padding: 5px !important;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.8rem;
 
       .products-icon {
-        font-size: 12px !important;
+        font-size: 1rem;
       }
 
       .chevron-icon {
@@ -153,10 +155,10 @@ $scroll-bg: #ffffff;
 
     .products-button {
       font-size: 0.8rem;
-      padding: 5px;
+      padding: 0.3rem 0.6rem;
 
       .products-icon {
-        font-size: 12px;
+        font-size: 0.9rem;
       }
 
       .chevron-icon {

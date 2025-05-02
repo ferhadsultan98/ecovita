@@ -347,7 +347,7 @@ const MenuSection = () => {
     const categories = Object.keys(menuItems[section]);
     return (
       <section className="menu-section" id={sectionId} ref={sectionRefs[section]}>
-       
+        <h2 className="section-title">{title}</h2>
         <div
           className={`menu-navbar-wrapper ${isNavbarSticky[section] ? "sticky" : ""}`}
           ref={navbarRefs[section]}
@@ -355,7 +355,6 @@ const MenuSection = () => {
           <div className="container">
             {fetchError && <div className="error-message">{fetchError}</div>}
             <div className="menu-navbar-content">
-            <h2 className="section-title">{title}</h2>
               <div className="menu-search">
                 <div className="search-input-wrapper">
                   <IoIosSearch className="search-icon" />

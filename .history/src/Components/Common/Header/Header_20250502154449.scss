@@ -16,6 +16,7 @@ $scroll-bg: #ffffff;
 
   &.scrolled {
     background: $scroll-bg;
+ 
     padding: 0.8rem 0;
   }
 
@@ -38,6 +39,7 @@ $scroll-bg: #ffffff;
 
     img {
       height: 100%;
+
     }
   }
 

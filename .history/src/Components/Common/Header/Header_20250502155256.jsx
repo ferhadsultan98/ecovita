@@ -36,6 +36,7 @@ const Header = () => {
   const scrollToSection = (sectionId) => {
     const section = document.getElementById(sectionId);
     if (section) {
+      // Scroll to the section's top to ensure the title is visible
       section.scrollIntoView({ behavior: "smooth", block: "start" });
       setIsDropdownOpen(false);
     }
