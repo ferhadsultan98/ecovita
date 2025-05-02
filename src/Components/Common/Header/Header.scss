@@ -1,0 +1,201 @@
+$primary-color: #008080; // Teal for health and cleanliness
+$secondary-color: #ffffff;
+$accent-color: #f5f6f5; // Light gray for clean aesthetic
+$text-color: #333333;
+$scroll-bg: #ffffff;
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: transparent;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  padding: 1.5rem 0;
+
+  &.scrolled {
+    background: $scroll-bg;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    text-decoration: none;
+    max-height: 80px;
+
+    img {
+      height: 100%;
+    }
+  }
+
+  .products-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: $primary-color;
+    color: $secondary-color;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: darken($primary-color, 10%);
+    }
+
+    .products-icon {
+      font-size: 1.2rem;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .lang-dropdown {
+    position: relative;
+
+    .lang-current {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: none;
+      border: 1px solid $secondary-color;
+      color: $secondary-color;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      .scrolled & {
+        border-color: $primary-color;
+        color: $primary-color;
+      }
+
+      .fa-chevron-down {
+        font-size: 0.8rem;
+        transition: transform 0.2s ease;
+
+        &.open {
+          transform: rotate(180deg);
+        }
+      }
+    }
+
+    .lang-options {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: $secondary-color;
+      border: 1px solid $accent-color;
+      border-radius: 5px;
+      margin-top: 0.5rem;
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      list-style: none;
+      padding: 0;
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+
+        &.active {
+          background: $accent-color;
+          font-weight: 500;
+        }
+
+        .lang-code {
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: $text-color;
+        }
+
+        .lang-name {
+          font-size: 0.9rem;
+          color: $text-color;
+        }
+      }
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    padding: 1rem 0;
+
+    &.scrolled {
+      padding: 0.75rem 0;
+    }
+
+    .header-container {
+      padding: 0 1rem;
+      flex-wrap: wrap;
+    }
+
+    .products-button {
+      font-size: 16px;
+      padding: 5px;
+
+      .products-icon {
+        font-size: 12px;
+      }
+    }
+
+    .lang-current {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.8rem;
+    }
+
+    .lang-options {
+      min-width: 120px;
+
+      li {
+        padding: 0.5rem 0.75rem;
+
+        .lang-code,
+        .lang-name {
+          font-size: 0.8rem;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .logo {
+      height: 20px !important;
+    }
+
+    .header-container {
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .header-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+}

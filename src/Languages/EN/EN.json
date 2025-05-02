@@ -1,0 +1,30 @@
+{"header": {
+    "menu": "Menu"
+  },
+  "home": {
+    "header": "A place defined by taste and elegance",
+    "title": "We invite you to our restaurant for unique flavors and unforgettable experiences.",
+    "exploreMenu": "Explore the Menu",
+    "about": "Our Story",
+    "mainheader": "Our Passion for Taste",
+    "twoheader": "Traditional Meets Modern",
+    "moreExplore": "Explore More",
+    "restaurantReserve": "Make a reservation"
+  },
+  "footer": {
+    "location": "Guba region, 2nd Nugadi village",
+    "viewMap": "View On Map",
+    "openHours": "Opening Hours",
+    "allRightReserved": "All rights reserved.",
+    "contactUs": "Contact",
+    "connectWithUs": "Connect With Us"
+  },
+  "menu": {
+    "all": "All",
+    "loadMore": "More",
+    "search": "Search...",
+    "noResults": "No results",
+    "tryDifferentSearch": "Try a different search",
+    "clearSearch": "Clear search"
+  }
+}

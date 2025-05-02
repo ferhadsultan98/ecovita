@@ -1,0 +1,32 @@
+{
+  "header": {
+    "menu": "Menyu",
+    "restaurantReserve": "Masa Rezerv Et"
+  },
+  "home": {
+    "header": "Dadı ilə seçilən, zövqlə yaradılan məkan",
+    "title": "Unikal dadlar və unudulmaz təcrübə üçün sizi restoranımızda gözləyirik.",
+    "exploreMenu": "Menyunu kəşf et",
+    "about": "Bizim Hekayəmiz",
+    "mainheader": "Dad Tutqumuz",
+    "twoheader": "Ənənəvi və Müasir",
+    "moreExplore": "Daha çox araşdırın",
+    "restaurantReserve": "Rezervasiya edin"
+  },
+  "footer": {
+    "location": "Guba regionu, 2-ci Nügədi kəndi",
+    "viewMap": "Xəritədə Gör",
+    "openHours": "İş Saatları",
+    "allRightReserved": "Bütün hüquqlar qorunur.",
+    "contactUs": "Əlaqə",
+    "connectWithUs": "Bizimlə əlaqə saxlayın"
+  },
+  "menu": {
+    "all": "Hamısı",
+    "loadMore": "Daha çox",
+    "search": "Axtar...",
+    "noResults": "Nəticə yoxdur",
+    "tryDifferentSearch": "Fərqli axtarış cəhd edin",
+    "clearSearch": "Axtarışı təmizlə"
+  }
+}
