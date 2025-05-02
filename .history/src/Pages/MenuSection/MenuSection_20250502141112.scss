@@ -20,7 +20,6 @@ $border-color: #e0e0e0;
       z-index: 1000;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       padding: 0.5rem 0;
-    
     }
 
     .container {
@@ -171,28 +170,21 @@ $border-color: #e0e0e0;
   }
 
   .menu-content {
-    padding: 10rem 5rem;
+    margin-top: 2rem;
+    padding: 5rem;
 
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); // auto-fill is better for evenly filling space
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
-      align-items: stretch; // Ensures all grid items have equal height
 
       .menu-item {
-        display: flex;
-        flex-direction: column;
-        height: 100%; // Ensures each menu item stretches vertically
-
         .menu-item-card {
-          display: flex;
-          flex-direction: column;
           background: $secondary-color;
           border: 1px solid $border-color;
           border-radius: 10px;
           overflow: hidden;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
-          height: 100%; // Ensures the card fills its container
 
           &:hover {
             transform: translateY(-5px);
@@ -227,7 +219,6 @@ $border-color: #e0e0e0;
           }
 
           .menu-item-content {
-            flex: 1;
             padding: 1.5rem;
 
             .menu-item-title {
@@ -317,9 +308,9 @@ $border-color: #e0e0e0;
   // Responsive design
   @media (max-width: 1024px) {
     .menu-content {
-      padding: 3rem;
+      padding: 1rem;
       .menu-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); // auto-fill for better space use
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       }
     }
   }
@@ -331,7 +322,6 @@ $border-color: #e0e0e0;
       &.sticky {
         padding: 0.25rem 0;
         top: 50px;
-        
       }
 
       .menu-search {
@@ -366,7 +356,7 @@ $border-color: #e0e0e0;
     }
 
     .menu-content {
-      padding: 7rem 1rem;
+      padding: 5rem 1rem;
       .menu-grid {
         grid-template-columns: 1fr;
 
@@ -451,3 +441,4 @@ $border-color: #e0e0e0;
     }
   }
 }
+

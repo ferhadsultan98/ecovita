@@ -26,19 +26,15 @@ const MenuSection = () => {
         {
           id: "1",
           name: { az: "Ecovita Səth Dezinfektanı" },
-          description: {
-            az: "Bütün səthlər üçün güclü təmizləyici, 99.9% mikrob öldürür.",
-          },
-          price: 12.5,
+          description: { az: "Bütün səthlər üçün güclü təmizləyici, 99.9% mikrob öldürür." },
+          price: 12.50,
           image_url: "surface-disinfectant.jpg",
         },
         {
           id: "2",
           name: { az: "Ecovita Sprey Dezinfektan" },
-          description: {
-            az: "Havada və səthlərdə istifadə üçün portativ sprey.",
-          },
-          price: 8.0,
+          description: { az: "Havada və səthlərdə istifadə üçün portativ sprey." },
+          price: 8.00,
           image_url: "spray-disinfectant.jpg",
         },
       ],
@@ -49,17 +45,15 @@ const MenuSection = () => {
         {
           id: "3",
           name: { az: "Ecovita Əl Sanitayzeri" },
-          description: {
-            az: "Alkoqol əsaslı, dərini qoruyan əl təmizləyicisi.",
-          },
-          price: 5.0,
+          description: { az: "Alkoqol əsaslı, dərini qoruyan əl təmizləyicisi." },
+          price: 5.00,
           image_url: "hand-sanitizer.jpg",
         },
         {
           id: "4",
           name: { az: "Ecovita Gel Sanitayzer" },
           description: { az: "Uzunmüddətli qoruma təmin edən gel formulası." },
-          price: 6.5,
+          price: 6.50,
           image_url: "gel-sanitizer.jpg",
         },
       ],
@@ -70,19 +64,15 @@ const MenuSection = () => {
         {
           id: "5",
           name: { az: "Ecovita Çoxməqsədli Təmizləyici" },
-          description: {
-            az: "Mətbəx və vanna otağı üçün ekoloji təmiz təmizləyici.",
-          },
-          price: 10.0,
+          description: { az: "Mətbəx və vanna otağı üçün ekoloji təmiz təmizləyici." },
+          price: 10.00,
           image_url: "multi-purpose-cleaner.jpg",
         },
         {
           id: "6",
           name: { az: "Ecovita Şüşə Təmizləyici" },
-          description: {
-            az: "Ləkəsiz parıltı üçün şüşə və güzgü təmizləyicisi.",
-          },
-          price: 7.0,
+          description: { az: "Ləkəsiz parıltı üçün şüşə və güzgü təmizləyicisi." },
+          price: 7.00,
           image_url: "glass-cleaner.jpg",
         },
       ],
@@ -95,10 +85,7 @@ const MenuSection = () => {
       if (!cat?.category?.az || !Array.isArray(cat.items)) return acc;
       const categoryKey = cat.category.az.toLowerCase().replace(/\s+/g, "-");
       acc[categoryKey] = {
-        items: cat.items.filter(
-          (item) =>
-            item?.id && item?.name?.az && item?.description?.az && item?.price
-        ),
+        items: cat.items.filter(item => item?.id && item?.name?.az && item?.description?.az && item?.price),
         name: cat.category,
       };
       return acc;
@@ -111,9 +98,7 @@ const MenuSection = () => {
       setMenuItems(processedData);
       setFetchError(null);
     } catch (error) {
-      setFetchError(
-        `Məhsul məlumatlarının yüklənməsində xəta: ${error.message}`
-      );
+      setFetchError(`Məhsul məlumatlarının yüklənməsində xəta: ${error.message}`);
       setMenuItems({});
     }
   }, []);
@@ -141,16 +126,12 @@ const MenuSection = () => {
 
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
-      items = items.filter(
-        (item) =>
-          (item.name?.az || "").toLowerCase().includes(term) ||
-          (item.description?.az || "").toLowerCase().includes(term)
+      items = items.filter((item) =>
+        (item.name?.az || "").toLowerCase().includes(term) ||
+        (item.description?.az || "").toLowerCase().includes(term)
       );
       setTimeout(() => {
-        sectionRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
+        sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     }
 
@@ -188,20 +169,14 @@ const MenuSection = () => {
   const handleFilterClick = (filter) => {
     setActiveFilter(filter);
     setTimeout(() => {
-      sectionRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
 
   const handleScroll = (direction) => {
     if (!filterListRef.current) return;
     const element = filterListRef.current;
-    const scrollAmount =
-      direction === "prev"
-        ? -element.clientWidth * 0.7
-        : element.clientWidth * 0.7;
+    const scrollAmount = direction === "prev" ? -element.clientWidth * 0.7 : element.clientWidth * 0.7;
     element.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
@@ -215,18 +190,13 @@ const MenuSection = () => {
 
   const scrollActiveFilterIntoView = () => {
     if (!filterListRef.current) return;
-    const activeButton = filterListRef.current.querySelector(
-      ".menu-filter-button-active"
-    );
+    const activeButton = filterListRef.current.querySelector(".menu-filter-button-active");
     if (activeButton) {
       const list = filterListRef.current;
       const buttonLeft = activeButton.offsetLeft;
       const buttonWidth = activeButton.offsetWidth;
       const listWidth = list.clientWidth;
-      list.scrollTo({
-        left: buttonLeft - listWidth / 2 + buttonWidth / 2,
-        behavior: "smooth",
-      });
+      list.scrollTo({ left: buttonLeft - listWidth / 2 + buttonWidth / 2, behavior: "smooth" });
     }
   };
 
@@ -259,12 +229,13 @@ const MenuSection = () => {
 
   return (
     <section className="menu-section" id="products" ref={sectionRef}>
-      <div
-        className={`menu-navbar-wrapper ${isNavbarSticky ? "sticky" : ""}`}
-        ref={navbarRef}
-      >
+      <div className={`menu-navbar-wrapper ${isNavbarSticky ? "sticky" : ""}`} ref={navbarRef}>
         <div className="container">
-          {fetchError && <div className="error-message">{fetchError}</div>}
+          {fetchError && (
+            <div className="error-message">
+              {fetchError}
+            </div>
+          )}
           <div className="menu-navbar-content">
             <div className="menu-search">
               <div className="search-input-wrapper">
@@ -286,9 +257,7 @@ const MenuSection = () => {
             <nav className="menu-filter">
               <div className="menu-filter-container">
                 <button
-                  className={`scroll-button scroll-button-prev ${
-                    scrolled <= 0 ? "scroll-button-disabled" : ""
-                  }`}
+                  className={`scroll-button scroll-button-prev ${scrolled <= 0 ? "scroll-button-disabled" : ""}`}
                   onClick={() => handleScroll("prev")}
                   disabled={scrolled <= 0}
                   aria-label="Sola sürüşdür"
@@ -302,11 +271,7 @@ const MenuSection = () => {
                 >
                   <div className="menu-filter-item">
                     <motion.button
-                      className={`menu-filter-button ${
-                        activeFilter === "all"
-                          ? "menu-filter-button-active"
-                          : ""
-                      }`}
+                      className={`menu-filter-button ${activeFilter === "all" ? "menu-filter-button-active" : ""}`}
                       onClick={() => handleFilterClick("all")}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -317,11 +282,7 @@ const MenuSection = () => {
                   {categories.map((category) => (
                     <div key={category} className="menu-filter-item">
                       <motion.button
-                        className={`menu-filter-button ${
-                          activeFilter === category
-                            ? "menu-filter-button-active"
-                            : ""
-                        }`}
+                        className={`menu-filter-button ${activeFilter === category ? "menu-filter-button-active" : ""}`}
                         onClick={() => handleFilterClick(category)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -332,9 +293,7 @@ const MenuSection = () => {
                   ))}
                 </div>
                 <button
-                  className={`scroll-button scroll-button-next ${
-                    scrolled >= maxScroll - 1 ? "scroll-button-disabled" : ""
-                  }`}
+                  className={`scroll-button scroll-button-next ${scrolled >= maxScroll - 1 ? "scroll-button-disabled" : ""}`}
                   onClick={() => handleScroll("next")}
                   disabled={scrolled >= maxScroll - 1}
                   aria-label="Sağa sürüşdür"
@@ -366,21 +325,14 @@ const MenuSection = () => {
                 >
                   <div className="menu-item-card">
                     <div className="menu-item-image">
-                      <img
-                        src={`https://via.placeholder.com/300x200?text=${encodeURIComponent(
-                          item.name.az
-                        )}`}
-                        alt={item.name.az}
-                      />
+                     
                       <div className="menu-item-category-badge">
                         {item.category.az}
                       </div>
                     </div>
                     <div className="menu-item-content">
                       <h4 className="menu-item-title">{item.name.az}</h4>
-                      <p className="menu-item-description">
-                        {item.description.az}
-                      </p>
+                      <p className="menu-item-description">{item.description.az}</p>
                       <div className="menu-item-footer">
                         <span className="menu-item-price">
                           {item.price.toFixed(2)} ₼
