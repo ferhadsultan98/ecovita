@@ -1,0 +1,66 @@
+{
+    "lunch": [
+      {
+        "id": 1,
+        "title": "Avocado Toast",
+        "description": "Sourdough, avocado, radish, poached egg, chili flakes",
+        "price": "$12.75",
+        "image": "src/assets/rep.jpg"
+      },
+      {
+        "id": 2,
+        "title": "Quinoa Salad",
+        "description": "Quinoa, cucumber, feta, mint, lemon vinaigrette",
+        "price": "$14.50",
+        "image": "src/assets/rep.jpg"
+      }
+    ],
+    "dinner": [
+      {
+        "id": 3,
+        "title": "Truffle Risotto",
+        "description": "Arborio rice, mushrooms, parmesan, truffle oil",
+        "price": "$28.00",
+        "image": "src/assets/rep.jpg"
+      },
+      {
+        "id": 4,
+        "title": "Herb-Crusted Salmon",
+        "description": "Salmon, dill, lemon, roasted vegetables",
+        "price": "$32.00",
+        "image": "src/assets/rep.jpg"
+      }
+    ],
+    "dessert": [
+      {
+        "id": 5,
+        "title": "Lemon Tart",
+        "description": "Buttery crust, lemon curd, whipped cream, berries",
+        "price": "$9.25",
+        "image": "src/assets/rep.jpg"
+      },
+      {
+        "id": 6,
+        "title": "Chocolate Lava Cake",
+        "description": "Warm chocolate cake, vanilla ice cream, raspberry coulis",
+        "price": "$10.50",
+        "image": "src/assets/rep.jpg"
+      }
+    ],
+    "drinks": [
+      {
+        "id": 7,
+        "title": "Spiced Chai Latte",
+        "description": "Cinnamon, cardamom, milk, black tea, honey",
+        "price": "$6.50",
+        "image": "src/assets/rep.jpg"
+      },
+      {
+        "id": 8,
+        "title": "Fresh Lemonade",
+        "description": "Lemon, mint, sparkling water, simple syrup",
+        "price": "$5.00",
+        "image": "src/assets/rep.jpg"
+      }
+    ]
+  }
