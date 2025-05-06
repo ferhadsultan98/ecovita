@@ -287,6 +287,7 @@ $overlay-color: rgba(0, 0, 0, 0.5);
       height: 80vh;
 
       .hero-content {
+        
         .hero-subtitle {
           font-size: 1rem;
         }
@@ -294,7 +295,7 @@ $overlay-color: rgba(0, 0, 0, 0.5);
           width: 180px;
         }
         .MiniLogo{
-          width: 40px;
+          width: 60px;
         }
         .hero-title {
           font-size: 2rem;
@@ -306,7 +307,7 @@ $overlay-color: rgba(0, 0, 0, 0.5);
 
         .button-group {
           .contact-button {
-            padding: 0.7rem;
+            padding: 0.7rem 1.5rem;
             font-size: 0.9rem;
           }
         }

@@ -5,8 +5,8 @@ $text-color: #333333;
 $border-color: #e0e0e0;
 
 // Assuming header height (including padding) is roughly 80px on desktop, 70px on mobile
-$header-height-desktop: 100px;
-$header-height-mobile: 55px;
+$header-height-desktop: 80px;
+$header-height-mobile: 70px;
 
 .menu-section {
   padding: 120px 0 2rem 0; // Increased top padding to account for fixed header
@@ -21,10 +21,10 @@ $header-height-mobile: 55px;
       top: $header-height-desktop; // Adjusted to sit below the fixed header
       left: 0;
       width: 100%;
-      z-index: 500;
+      z-index: 1000;
       background: rgba($secondary-color, 0.98);
       backdrop-filter: blur(10px);
- 
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       padding: 0.75rem 0;
     }
 
@@ -207,7 +207,7 @@ $header-height-mobile: 55px;
   }
 
   .menu-content {
-    padding: 16rem 1rem;
+    padding: 2rem 1rem;
     background: $secondary-color;
     border-radius: 16px;
     margin: 1rem auto;
@@ -451,7 +451,7 @@ $header-height-mobile: 55px;
     }
 
     .menu-content {
-      padding: 10rem 1rem;
+      padding: 1rem;
 
       .menu-grid {
         grid-template-columns: 1fr;

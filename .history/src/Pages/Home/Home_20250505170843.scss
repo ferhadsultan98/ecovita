@@ -42,9 +42,6 @@ $overlay-color: rgba(0, 0, 0, 0.5);
       .DescLogo{
         width: 300px;
       }
-      .MiniLogo{
-        width: 60px;
-      }
       .hero-subtitle {
         font-size: 1.2rem;
         font-weight: 500;
@@ -290,12 +287,7 @@ $overlay-color: rgba(0, 0, 0, 0.5);
         .hero-subtitle {
           font-size: 1rem;
         }
-        .DescLogo{
-          width: 180px;
-        }
-        .MiniLogo{
-          width: 40px;
-        }
+
         .hero-title {
           font-size: 2rem;
         }
@@ -306,7 +298,7 @@ $overlay-color: rgba(0, 0, 0, 0.5);
 
         .button-group {
           .contact-button {
-            padding: 0.7rem;
+            padding: 0.7rem 1.5rem;
             font-size: 0.9rem;
           }
         }

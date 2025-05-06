@@ -5,8 +5,8 @@ $text-color: #333333;
 $border-color: #e0e0e0;
 
 // Assuming header height (including padding) is roughly 80px on desktop, 70px on mobile
-$header-height-desktop: 100px;
-$header-height-mobile: 55px;
+$header-height-desktop: 80px;
+$header-height-mobile: 70px;
 
 .menu-section {
   padding: 120px 0 2rem 0; // Increased top padding to account for fixed header
@@ -21,10 +21,10 @@ $header-height-mobile: 55px;
       top: $header-height-desktop; // Adjusted to sit below the fixed header
       left: 0;
       width: 100%;
-      z-index: 500;
+      z-index: 1000;
       background: rgba($secondary-color, 0.98);
       backdrop-filter: blur(10px);
- 
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       padding: 0.75rem 0;
     }
 
@@ -207,7 +207,7 @@ $header-height-mobile: 55px;
   }
 
   .menu-content {
-    padding: 16rem 1rem;
+    padding: 2rem 1rem 4rem 1rem; // Increased bottom padding to ensure all cards are visible
     background: $secondary-color;
     border-radius: 16px;
     margin: 1rem auto;
@@ -217,6 +217,7 @@ $header-height-mobile: 55px;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 1.5rem;
+      padding: 0 0 2.5rem 0; // Added bottom padding to ensure cards are fully visible
 
       .menu-item {
         display: flex;
@@ -285,13 +286,13 @@ $header-height-mobile: 55px;
               color: lighten($text-color, 25%);
               line-height: 1.5;
               flex: 1;
+              margin-bottom: 0.5rem; // Added margin to ensure spacing before footer
             }
 
             .menu-item-footer {
               display: flex;
               justify-content: space-between;
               align-items: center;
-              margin-top: 1rem;
 
               .menu-item-price {
                 font-size: 1rem;
@@ -353,6 +354,7 @@ $header-height-mobile: 55px;
     .menu-load-more {
       text-align: center;
       margin-top: 2rem;
+      padding-bottom: 2rem; // Added padding to ensure button has space
 
       .load-more-button {
         background: $primary-color;
@@ -378,10 +380,10 @@ $header-height-mobile: 55px;
     padding-top: 100px; // Slightly less padding for medium screens
 
     .menu-content {
-      padding: 1.5rem;
-
+      padding: 1.5rem 1rem 3.5rem 1rem; // Increased bottom padding for medium screens
       .menu-grid {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        padding-bottom: 2rem; // Increased padding for medium screens
       }
     }
 
@@ -451,10 +453,10 @@ $header-height-mobile: 55px;
     }
 
     .menu-content {
-      padding: 10rem 1rem;
-
+      padding: 1rem 1rem 3rem 1rem; // Increased bottom padding for mobile
       .menu-grid {
         grid-template-columns: 1fr;
+        padding-bottom: 1.5rem; // Increased padding for mobile
 
         .menu-item-card {
           .menu-item-content {

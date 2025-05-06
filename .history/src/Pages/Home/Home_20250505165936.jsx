@@ -3,8 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import "./Home.scss";
 import { FaSyringe } from "react-icons/fa";
-import DescLogo from '../../../public/assets/Fotolar/desclogo.png'
-import MiniLogo from '../../../public/assets/Fotolar/minilogo.png'
+
 const Home = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -44,18 +43,20 @@ const Home = () => {
           animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          {/* <motion.span
+          <motion.span
             className="hero-subtitle"
             initial={{ opacity: 0 }}
             animate={isVisible ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
             Ecovita
-          </motion.span> */}
-          <img src={DescLogo} alt="DescLogo" className="DescLogo"/>
+          </motion.span>
+          <img src="" alt="" />
           <div className="separator">
             <span></span>
-            <img src={MiniLogo} alt="MiniLogo" className="MiniLogo"/>
+            <i>
+              <FaSyringe />
+            </i>
             <span></span>
           </div>
           <motion.p

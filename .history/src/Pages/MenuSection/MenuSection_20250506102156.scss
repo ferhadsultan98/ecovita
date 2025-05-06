@@ -4,12 +4,8 @@ $accent-color: #f5f6f5; // Light gray for clean aesthetic
 $text-color: #333333;
 $border-color: #e0e0e0;
 
-// Assuming header height (including padding) is roughly 80px on desktop, 70px on mobile
-$header-height-desktop: 100px;
-$header-height-mobile: 55px;
-
 .menu-section {
-  padding: 120px 0 2rem 0; // Increased top padding to account for fixed header
+  padding: 2rem 0;
   background: $accent-color;
 
   .menu-navbar-wrapper {
@@ -18,13 +14,13 @@ $header-height-mobile: 55px;
 
     &.sticky {
       position: fixed;
-      top: $header-height-desktop; // Adjusted to sit below the fixed header
+      top: 0;
       left: 0;
       width: 100%;
-      z-index: 500;
+      z-index: 1000;
       background: rgba($secondary-color, 0.98);
       backdrop-filter: blur(10px);
- 
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       padding: 0.75rem 0;
     }
 
@@ -207,7 +203,7 @@ $header-height-mobile: 55px;
   }
 
   .menu-content {
-    padding: 16rem 1rem;
+    padding: 2rem 1rem;
     background: $secondary-color;
     border-radius: 16px;
     margin: 1rem auto;
@@ -375,8 +371,6 @@ $header-height-mobile: 55px;
 
   // Responsive Design
   @media (max-width: 1024px) {
-    padding-top: 100px; // Slightly less padding for medium screens
-
     .menu-content {
       padding: 1.5rem;
 
@@ -386,10 +380,6 @@ $header-height-mobile: 55px;
     }
 
     .menu-navbar-wrapper {
-      &.sticky {
-        top: $header-height-desktop;
-      }
-
       .menu-filter {
         .menu-filter-container {
           .menu-filter-list {
@@ -404,11 +394,10 @@ $header-height-mobile: 55px;
   }
 
   @media (max-width: 768px) {
-    padding: 100px 0 1rem 0; // Adjusted for mobile header height
+    padding: 1rem 0;
 
     .menu-navbar-wrapper {
       &.sticky {
-        top: $header-height-mobile; // Adjusted for mobile header height
         padding: 0.5rem 0;
       }
 
@@ -451,7 +440,7 @@ $header-height-mobile: 55px;
     }
 
     .menu-content {
-      padding: 10rem 1rem;
+      padding: 1rem;
 
       .menu-grid {
         grid-template-columns: 1fr;
@@ -500,13 +489,7 @@ $header-height-mobile: 55px;
   }
 
   @media (max-width: 480px) {
-    padding-top: 90px; // Further adjusted for smaller screens
-
     .menu-navbar-wrapper {
-      &.sticky {
-        top: $header-height-mobile;
-      }
-
       .menu-navbar-content {
         .section-title {
           font-size: 1.4rem;

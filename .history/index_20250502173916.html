@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f0f2f5;
+        }
+
+        .sidebar {
+            width: 30%;
+            min-width: 300px;
+            max-width: 450px;
+            height: 100%;
+            background-color: #ffffff;
+            border-right: 1px solid #e1e1e1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mainChat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #efeae2;
+            background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 16c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zm33.414-6l5.95-5.95L45.95.636 40 6.586 34.05.636 32.636 2.05 38.586 8l-5.95 5.95 1.414 1.414L40 9.414l5.95 5.95 1.414-1.414L41.414 8zM40 48c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM9.414 40l5.95-5.95-1.414-1.414L8 38.586l-5.95-5.95L.636 34.05 6.586 40l-5.95 5.95 1.414 1.414L8 41.414l5.95 5.95 1.414-1.414L9.414 40z' fill='%23cfd8dc' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background-color: #f0f2f5;
+            height: 60px;
+        }
+
+        .headerLeft {
+            display: flex;
+            align-items: center;
+        }
+
+        .profilePic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        .searchContainer {
+            padding: 8px;
+            background-color: #f0f2f5;
+        }
+
+        .searchBox {
+            width: 100%;
+            padding: 10px 15px 10px 65px;
+            border: none;
+            border-radius: 8px;
+            background-color: #ffffff;
+            position: relative;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='%23919191' d='M15.9 14.3H15l-.3-.3c1-1.1 1.6-2.7 1.6-4.3 0-3.7-3-6.7-6.7-6.7S3 6 3 9.7s3 6.7 6.7 6.7c1.6 0 3.2-.6 4.3-1.6l.3.3v.8l5.1 5.1 1.5-1.5-5-5.2zm-6.2 0c-2.6 0-4.6-2.1-4.6-4.6s2.1-4.6 4.6-4.6 4.6 2.1 4.6 4.6-2 4.6-4.6 4.6z'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 30px center;
+        }
+
+        .searchBox::placeholder {
+            color: #919191;
+        }
+
+        .tabContainer {
+            display: flex;
+            padding: 10px 8px;
+            overflow-x: auto;
+            background-color: #ffffff;
+        }
+
+        .tab {
+            padding: 8px 12px;
+            margin-right: 8px;
+            border-radius: 16px;
+            background-color: #f0f2f5;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background-color: #d9fdd3;
+            color: #0a5d0a;
+        }
+
+        .chatList {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chatItem {
+            display: flex;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .chatItem:hover {
+            background-color: #f5f6f6;
+        }
+
+        .chatItem.active {
+            background-color: #f0f2f5;
+        }
+
+        .chatContent {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .chatHeader {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .chatName {
+            font-weight: 500;
+        }
+
+        .chatTime {
+            color: #667781;
+            font-size: 12px;
+        }
+
+        .chatPreview {
+            display: flex;
+            align-items: center;
+            color: #667781;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+
+        .messageStatus {
+            margin-right: 4px;
+            color: #0da10d;
+        }
+
+        .verticalMenu {
+            position: absolute;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 3px;
+            z-index: 100;
+            width: 180px;
+        }
+
+        .menuItem {
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .menuItem:hover {
+            background-color: #f0f2f5;
+        }
+
+        .menuIcon {
+            margin-right: 15px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .navigationIcons {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 70px;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .navIcon {
+            width: 28px;
+            height: 28px;
+            margin: 15px 0;
+            cursor: pointer;
+            color: #54656f;
+        }
+
+        .chatHeader {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f0f2f5;
+            border-left: 1px solid #e1e1e1;
+        }
+
+        .chatHeaderInfo {
+            display: flex;
+            align-items: center;
+        }
+
+        .chatHeaderIcons {
+            display: flex;
+        }
+
+        .headerIcon {
+            margin-left: 20px;
+            cursor: pointer;
+            color: #54656f;
+        }
+
+        .messagesContainer {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 65%;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            border-radius: 7.5px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .received {
+            background-color: #ffffff;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+
+        .sent {
+            background-color: #d9fdd3;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        .messageTime {
+            font-size: 11px;
+            color: #667781;
+            float: right;
+            margin-left: 8px;
+            margin-top: 2px;
+        }
+
+        .inputContainer {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            background-color: #f0f2f5;
+        }
+
+        .emojiButton {
+            margin-right: 10px;
+            cursor: pointer;
+            color: #54656f;
+        }
+
+        .attachButton {
+            margin-right: 10px;
+            cursor: pointer;
+            color: #54656f;
+        }
+
+        .messageInput {
+            flex: 1;
+            padding: 9px 12px;
+            border: none;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .sendButton {
+            margin-left: 10px;
+            cursor: pointer;
+            color: #54656f;
+        }
+
+        .settingsContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 1000;
+            display: none;
+        }
+
+        .settingsHeader {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-color: #008069;
+            color: white;
+        }
+
+        .backButton {
+            margin-right: 30px;
+            cursor: pointer;
+        }
+
+        .settingsContent {
+            padding: 20px;
+        }
+
+        .settingsItem {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f2f5;
+            align-items: center;
+        }
+
+        .settingsIcon {
+            width: 24px;
+            height: 24px;
+            margin-right: 20px;
+            color: #54656f;
+        }
+
+        .settingsInfo {
+            flex: 1;
+        }
+
+        .settingsTitle {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .settingsDescription {
+            color: #667781;
+            font-size: 14px;
+        }
+
+        .logoutButton {
+            color: #f15c6d;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .newChatContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 1000;
+            display: none;
+        }
+
+        .newChatHeader {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-color: #008069;
+            color: white;
+        }
+
+        .newChatContent {
+            padding: 20px;
+        }
+
+        .newChatSearch {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 24px;
+            background-color: #f0f2f5;
+            margin-bottom: 20px;
+        }
+
+        .newChatOption {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+        }
+
+        .newChatIcon {
+            width: 50px;
+            height: 50px;
+            background-color: #25d366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+        }
+
+        .newChatTitle {
+            font-weight: 500;
+        }
+
+        .contactDivider {
+            margin: 10px 0;
+            color: #667781;
+            font-weight: 500;
+        }
+
+        .contactItem {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+
+        .contactInfo {
+            margin-left: 15px;
+        }
+
+        .contactName {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .contactStatus {
+            color: #667781;
+            font-size: 14px;
+        }
+
+        .messageActions {
+            position: absolute;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 3px;
+            z-index: 100;
+            width: 150px;
+            display: none;
+        }
+
+        .messageReactions {
+            display: flex;
+            padding: 8px;
+            background-color: white;
+            border-radius: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: absolute;
+            z-index: 100;
+            display: none;
+        }
+        
+        .reaction {
+            font-size: 20px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                min-width: 100%;
+                display: block;
+            }
+            
+            .mainChat {
+                display: none;
+                width: 100%;
+            }
+            
+            .mainChat.active {
+                display: flex;
+            }
+            
+            .sidebar.hidden {
+                display: none;
+            }
+            
+            .backButton {
+                display: block;
+            }
+        }
+        
+        @media screen and (min-width: 769px) {
+            .backButton {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Side Navigation Icons -->
+    <div class="navigationIcons">
+        <div class="navIcon" id="statusIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 1.75C6.34 1.75 1.75 6.34 1.75 12S6.34 22.25 12 22.25 22.25 17.66 22.25 12 17.66 1.75 12 1.75zm0 18.5c-4.55 0-8.25-3.7-8.25-8.25S7.45 3.75 12 3.75s8.25 3.7 8.25 8.25-3.7 8.25-8.25 8.25z"></path></svg>
+        </div>
+        <div class="navIcon" id="callsIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19.44 13.04c-.29-.29-1.07-.29-1.36 0l-1.5 1.5a9.93 9.93 0 0 1-4.38-4.39l1.5-1.5c.29-.29.29-1.07 0-1.36L10.74 4.3c-.29-.29-1.07-.29-1.36 0l-2.35 2.35c-.29.29-.52.97-.29 1.8.66 2.36 2.3 4.73 4.33 6.75s4.39 3.67 6.75 4.33c.83.23 1.51 0 1.8-.29l2.35-2.35c.29-.29.29-1.07 0-1.36l-2.53-2.49z"></path></svg>
+        </div>
+        <div class="navIcon active" id="chatsIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19.005 3.995c-1.79-1.795-4.985-1.79-13.01 0-3.995.89-3.995 5.01-3.995 8.005 0 2.995 0 7.115 3.995 8.005 8.025 1.785 11.215 1.795 13.01 0 1.785-1.79 1.795-4.98 0-16.01z"></path><path fill="#fff" d="M10.005 8.995h4v1.5h-4v-1.5zm-2.5 3h9v1.5h-9v-1.5z"></path></svg>
+        </div>
+        <div class="navIcon" id="peopleIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 2.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7.5a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm7.5 6.25V18a3 3 0 0 1-3 3H7.5a3 3 0 0 1-3-3v-1.75c0-3.45 2.8-6.25 6.25-6.25h2.5c3.45 0 6.25 2.8 6.25 6.25zm-1.5 0c0-2.62-2.13-4.75-4.75-4.75h-2.5c-2.62 0-4.75 2.13-4.75 4.75V18c0 .83.67 1.5 1.5 1.5h9c.83 0 1.5-.67 1.5-1.5v-1.75z"></path></svg>
+        </div>
+    </div>
+
+    <!-- Sidebar / Chat List -->
+    <div class="sidebar" id="sidebar">
+        <div class="header">
+            <div class="headerLeft">
+                <img src="https://via.placeholder.com/40" alt="Profile" class="profilePic" id="profilePic">
+                <span class="chatName">WhatsApp</span>
+            </div>
+            <div class="headerIcons">
+                <span style="margin-right: 20px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                        <path d="M12 20.5a8.5 8.5 0 1 1 0-17 8.5 8.5 0 0 1 0 17zm0-16a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15z"></path>
+                        <path d="M12 9a1 1 0 0 1 1 1v5a1 1 0 0 1-2 0v-5a1 1 0 0 1 1-1zm0-3a1 1 0 0 1 0 2 1 1 0 0 1 0-2z"></path>
+                    </svg>
+                </span>
+                <span id="newChatButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                        <path d="M19.005 3.175a1.77 1.77 0 0 0-1.177.41l-1.943 1.563a3.2 3.2 0 0 0-1.008-.142H8.123a3.22 3.22 0 0 0-3.218 3.218v8.352a3.22 3.22 0 0 0 3.218 3.218h7.754a3.22 3.22 0 0 0 3.218-3.218V9.2c0-.267-.036-.53-.103-.782l1.99-1.533a1.813 1.813 0 0 0-.592-3.115v.017zm-8.3 5.17h4.59c.425 0 .77.345.77.77v.334a.77.77 0 0 1-.771.77h-4.59a.77.77 0 0 1-.77-.77v-.334a.77.77 0 0 1 .771-.77zm0 2.536h2.52c.425 0 .77.345.77.77v.334a.77.77 0 0 1-.77.77h-2.52a.77.77 0 0 1-.77-.77v-.334a.77.77 0 0 1 .77-.77z"></path>
+                    </svg>
+                </span>
+                <span style="margin-left: 20px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                        <path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path>
+                    </svg>
+                </span>
+            </div>
+        </div>
+        
+        <div class="searchContainer">
+            <input type="text" class="searchBox" placeholder="Search or start a new chat">
+        </div>
+        
+        <div class="tabContainer">
+            <div class="tab active" id="allTab">All</div>
+            <div class="tab" id="unreadTab">Unread</div>
+            <div class="tab" id="favoritesTab">Favorites</div>
+            <div class="tab" id="groupsTab">Groups</div>
+        </div>
+        
+        <div class="chatList" id="chatList">
+            <div class="chatItem" data-contact="Simmm">
+                <img src="https://via.placeholder.com/50/FF5733/ffffff" alt="Profile" class="profilePic">
+                <div class="chatContent">
+                    <div class="chatHeader">
+                        <span class="chatName">Simmm</span>
+                        <span class="chatTime">Wednesday</span>
+                    </div>
+                    <div class="chatPreview">
+                        <span class="messageStatus">✓✓</span>
+                        <span>https://www.facebook.com/share/p/1AH5Go...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatItem" data-contact="Farhad">
+                <img src="https://via.placeholder.com/50/3369E8/ffffff" alt="Profile" class="profilePic">
+                <div class="chatContent">
+                    <div class="chatHeader">
+                        <span class="chatName">Farhad (You)</span>
+                        <span class="chatTime">14:55</span>
+                    </div>
+                    <div class="chatPreview">
+                        <span class="messageStatus">✓✓</span>
+                        <span>📄 invoice-1.pdf • 1 page</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatItem" data-contact="Xanimm">
+                <img src="https://via.placeholder.com/50/D50F25/ffffff" alt="Profile" class="profilePic">
+                <div class="chatContent">
+                    <div class="chatHeader">
+                        <span class="chatName">Xanimm</span>
+                        <span class="chatTime">15:02</span>
+                    </div>
+                    <div class="chatPreview">
+                        <span class="messageStatus">✓✓</span>
+                        <span>🎬 Sticker</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatItem" data-contact="Eli">
+                <img src="https://via.placeholder.com/50/009925/ffffff" alt="Profile" class="profilePic">
+                <div class="chatContent">
+                    <div class="chatHeader">
+                        <span class="chatName">Eli</span>
+                        <span class="chatTime">14:54</span>
+                    </div>
+                    <div class="chatPreview">
+                        <span class="messageStatus">✓✓</span>
+                        <span>Tamam</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatItem" data-contact="Mama">
+                <img src="https://via.placeholder.com/50/EEB211/ffffff" alt="Profile" class="profilePic">
+                <div class="chatContent">
+                    <div class="chatHeader">
+                        <span class="chatName">Mama</span>
+                        <span class="chatTime">14:52</span>
+                    </div>
+                    <div class="chatPreview">
+                        <span class="messageStatus">✓✓</span>
+                        <span>📞 Voice call</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatItem" data-contact="Gulnara Xanim PMS">
+                <img src="https://via.placeholder.com/50/AA18E1/ffffff" alt="Profile" class="profilePic">
+                <div class="chatContent">
+                    <div class="chatHeader">
+                        <span class="chatName">Gulnara Xanim PMS</span>
+                        <span class="chatTime">14:46</span>
+                    </div>
+                    <div class="chatPreview">
+                        <span class="messageStatus">✓✓</span>
+                        <span>oldu</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatItem" data-contact="Gulten">
+                <img src="https://via.placeholder.com/50/0F9D58/ffffff" alt="Profile" class="profilePic">
+                <div class="chatContent">
+                    <div class="chatHeader">
+                        <span class="chatName">Gulten</span>
+                        <span class="chatTime">13:10</span>
+                    </div>
+                    <div class="chatPreview">
+                        <span class="messageStatus">✓✓</span>
+                        <span>📷 Photo</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatItem" data-contact="Best Team">
+                <img src="https://via.placeholder.com/50/4285F4/ffffff" alt="Profile" class="profilePic">
+                <div class="chatContent">
+                    <div class="chatHeader">
+                        <span class="chatName">Best Team 👍👨‍💻👾</span>
+                        <span class="chatTime">12:11</span>
+                    </div>
+                    <div class="chatPreview">
+                        <span class="messageStatus">✓✓</span>
+                        <span>Meeting at 3 PM today</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Chat Area -->
+    <div class="mainChat" id="mainChat">
+        <div class="chatHeader">
+            <div class="chatHeaderInfo">
+                <div class="backButton" id="backButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                        <path d="M19.8 11H7.4l5.6-5.6L11.8 4 4.2 11.6 11.8 19l1.4-1.4-5.6-5.6h12.2v-2z"></path>
+                    </svg>
+                </div>
+                <img src="https://via.placeholder.com/40/FF5733/ffffff" alt="Profile" class="profilePic" id="currentChatProfile">
+                <div>
+                    <div class="chatName" id="currentChatName">Simmm</div>
+                    <div class="chatStatus">Business Account</div>
+                </div>
+            </div>
+            <div class="chatHeaderIcons">
+                <div class="headerIcon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                    <path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path>
+                </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="messagesContainer" id="messagesContainer">
+                            <div class="message received">
+                                <div>Hello there!</div>
+                                <div class="messageTime">15:29</div>
+                            </div>
+                            <div class="message sent">
+                                <div>Hi! How are you?</div>
+                                <div class="messageTime">15:30 ✓✓</div>
+                            </div>
+                            <div class="message received">
+                                <div>I'm good, thanks! Here's the link I mentioned: https://www.facebook.com/share/p/TAH5Go...</div>
+                                <div class="messageTime">15:31</div>
+                            </div>
+                        </div>
+                        
+                        <div class="inputContainer">
+                            <div class="emojiButton">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                                    <path d="M12 22.75C6.072 22.75 1.25 17.928 1.25 12S6.072 1.25 12 1.25 22.75 6.072 22.75 12 17.928 22.75 12 22.75zm0-20C6.9 2.75 2.75 6.9 2.75 12S6.9 21.25 12 21.25s9.25-4.15 9.25-9.25S17.1 2.75 12 2.75z"></path>
+                                    <path d="M12 17.115c-1.892 0-3.633-.95-4.656-2.544-.224-.348-.123-.81.226-1.035.348-.226.812-.124 1.036.226.747 1.162 2.016 1.855 3.395 1.855s2.648-.693 3.396-1.854c.224-.35.688-.45 1.036-.225.35.224.45.688.226 1.036-1.025 1.594-2.766 2.545-4.658 2.545z"></path>
+                                    <circle cx="14.738" cy="9.458" r="1.478"></circle>
+                                    <circle cx="9.262" cy="9.458" r="1.478"></circle>
+                                </svg>
+                            </div>
+                            <div class="attachButton">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                                    <path d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814l-.244-.244c-.235-.235-.657-.13-.814.028l-7.206 7.208a5.577 5.577 0 0 0-1.645 3.971z"></path>
+                                </svg>
+                            </div>
+                            <input type="text" class="messageInput" placeholder="Type a message">
+                            <div class="sendButton">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                                    <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Panel -->
+                    <div class="settingsContainer" id="settingsContainer">
+                        <div class="settingsHeader">
+                            <div class="backButton" id="settingsBackButton">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                                    <path d="M19.8 11H7.4l5.6-5.6L11.8 4 4.2 11.6 11.8 19l1.4-1.4-5.6-5.6h12.2v-2z"></path>
+                                </svg>
+                            </div>
+                            <div class="settingsTitle">Settings</div>
+                        </div>
+                        <div class="settingsContent">
+                            <div class="settingsItem">
+                                <div class="settingsIcon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                                        <path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"></path>
+                                    </svg>
+                                </div>
+                                <div class="settingsInfo">
+                                    <div class="settingsTitle">Search settings</div>
+                                </div>
+                            </div>
+                            <div class="settingsItem">
+                                <div class="settingsIcon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#54656f">
+                                        <path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path>
+                                    </svg>
+                                </div>
+                                <div class="settingsInfo">
+                                    <div class="settingsTitle">Farhad</div>
+                                </div>
+                            </div>
+                            <div class="logoutButton">Log out</div>
+                        </div>
+                    </div>
+                    
+                    <!-- New Chat Panel -->
+                    <div class="newChatContainer" id="newChatContainer">
+                        <div class="newChatHeader">
+                            <div class="backButton" id="newChatBackButton">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                                    <path d="M19.8 11H7.4l5.6-5.6L11.8 4 4.2 11.6 11.8 19l1.4-1.4-5.6-5.6h12.2v-2z"></path>
+                                </svg>
+                            </div>
+                            <div class="settingsTitle">New chat</div>
+                        </div>
+                        <div class="newChatContent">
+                            <input type="text" class="newChatSearch" placeholder="Search name or number">
+                            <div class="newChatOption">
+                                <div class="newChatIcon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                                        <path d="M19.005 3.175a1.77 1.77 0 0 0-1.177.41l-1.943 1.563a3.2 3.2 0 0 0-1.008-.142H8.123a3.22 3.22 0 0 0-3.218 3.218v8.352a3.22 3.22 0 0 0 3.218 3.218h7.754a3.22 3.22 0 0 0 3.218-3.218V9.2c0-.267-.036-.53-.103-.782l1.99-1.533a1.813 1.813 0 0 0-.592-3.115v.017zm-8.3 5.17h4.59c.425 0 .77.345.77.77v.334a.77.77 0 0 1-.771.77h-4.59a.77.77 0 0 1-.77-.77v-.334a.77.77 0 0 1 .771-.77zm0 2.536h2.52c.425 0 .77.345.77.77v.334a.77.77 0 0 1-.77.77h-2.52a.77.77 0 0 1-.77-.77v-.334a.77.77 0 0 1 .77-.77z"></path>
+                                    </svg>
+                                </div>
+                                <div class="newChatTitle">New group</div>
+                            </div>
+                            <div class="newChatOption">
+                                <div class="newChatIcon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                                        <path d="M19.005 3.175a1.77 1.77 0 0 0-1.177.41l-1.943 1.563a3.2 3.2 0 0 0-1.008-.142H8.123a3.22 3.22 0 0 0-3.218 3.218v8.352a3.22 3.22 0 0 0 3.218 3.218h7.754a3.22 3.22 0 0 0 3.218-3.218V9.2c0-.267-.036-.53-.103-.782l1.99-1.533a1.813 1.813 0 0 0-.592-3.115v.017zm-8.3 5.17h4.59c.425 0 .77.345.77.77v.334a.77.77 0 0 1-.771.77h-4.59a.77.77 0 0 1-.77-.77v-.334a.77.77 0 0 1 .771-.77zm0 2.536h2.52c.425 0 .77.345.77.77v.334a.77.77 0 0 1-.77.77h-2.52a.77.77 0 0 1-.77-.77v-.334a.77.77 0 0 1 .77-.77z"></path>
+                                    </svg>
+                                </div>
+                                <div class="newChatTitle">New contact</div>
+                            </div>
+                            <div class="newChatOption">
+                                <div class="newChatIcon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                                        <path d="M19.005 3.175a1.77 1.77 0 0 0-1.177.41l-1.943 1.563a3.2 3.2 0 0 0-1.008-.142H8.123a3.22 3.22 0 0 0-3.218 3.218v8.352a3.22 3.22 0 0 0 3.218 3.218h7.754a3.22 3.22 0 0 0 3.218-3.218V9.2c0-.267-.036-.53-.103-.782l1.99-1.533a1.813 1.813 0 0 0-.592-3.115v.017zm-8.3 5.17h4.59c.425 0 .77.345.77.77v.334a.77.77 0 0 1-.771.77h-4.59a.77.77 0 0 1-.77-.77v-.334a.77.77 0 0 1 .771-.77zm0 2.536h2.52c.425 0 .77.345.77.77v.334a.77.77 0 0 1-.77.77h-2.52a.77.77 0 0 1-.77-.77v-.334a.77.77 0 0 1 .77-.77z"></path>
+                                    </svg>
+                                </div>
+                                <div class="newChatTitle">New community</div>
+                            </div>
+                            
+                            <div class="contactDivider">Contacts on WhatsApp</div>
+                            
+                            <div class="contactItem">
+                                <img src="https://via.placeholder.com/50/3369E8/ffffff" alt="Profile" class="profilePic">
+                                <div class="contactInfo">
+                                    <div class="contactName">Ferhad (You)</div>
+                                    <div class="contactStatus">Message yourself</div>
+                                </div>
+                            </div>
+                            
+                            <div class="contactDivider">#</div>
+                            
+                            <div class="contactItem">
+                                <img src="https://via.placeholder.com/50/0F9D58/ffffff" alt="Profile" class="profilePic">
+                                <div class="contactInfo">
+                                    <div class="contactName">+994553341757</div>
+                                    <div class="contactStatus">Merhaba. Ben WhatsApp Business kullanıyorum.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="contactDivider">A</div>
+                            
+                            <div class="contactItem">
+                                <img src="https://via.placeholder.com/50/EEB211/ffffff" alt="Profile" class="profilePic">
+                                <div class="contactInfo">
+                                    <div class="contactName">Ainura</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Context Menu -->
+                    <div class="verticalMenu" id="contextMenu">
+                        <div class="menuItem" id="archiveChat">
+                            <div class="menuIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                    <path d="M21 6v14.008c0 .53-.43.992-.993.992H3.993A.994.994 0 0 1 3 20.008V6h18zm-1-4c.552 0 1 .448 1 1v1H3V3c0-.552.448-1 1-1h16z"></path>
+                                </svg>
+                            </div>
+                            <div>Archive chat</div>
+                        </div>
+                        <div class="menuItem" id="lockChat">
+                            <div class="menuIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                    <path d="M12 2a5 5 0 0 1 5 5v2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-8c0-1.1.9-2 2-2V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v2h6V7a3 3 0 0 0-3-3z"></path>
+                                </svg>
+                            </div>
+                            <div>Lock chat</div>
+                        </div>
+                        <div class="menuItem" id="unpinChat">
+                            <div class="menuIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                    <path d="M16 12v6H8v-6H5l7-7 7 7h-3zm-4-2a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path>
+                                </svg>
+                            </div>
+                            <div>Unpin chat</div>
+                        </div>
+                        <div class="menuItem" id="markUnread">
+                            <div class="menuIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                    <path d="M12 22.75C6.072 22.75 1.25 17.928 1.25 12S6.072 1.25 12 1.25 22.75 6.072 22.75 12 17.928 22.75 12 22.75zm0-20C6.9 2.75 2.75 6.9 2.75 12S6.9 21.25 12 21.25s9.25-4.15 9.25-9.25S17.1 2.75 12 2.75z"></path>
+                                </svg>
+                            </div>
+                            <div>Mark as unread</div>
+                        </div>
+                        <div class="menuItem" id="deleteChat">
+                            <div class="menuIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                    <path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"></path>
+                                </svg>
+                            </div>
+                            <div>Delete chat</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Message Actions Menu -->
+                    <div class="messageActions" id="messageActions">
+                        <div class="menuItem" id="replyMessage">
+                            <div class="menuIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                    <path d="M11 20L1 12l10-8v5c5.523 0 10 4.477 10 10 0 .273-.01.543-.032.81a9.003 9.003 0 0 0-7.655-4.805L13 15h-2v5z"></path>
+                                </svg>
+                            </div>
+                            <div>Reply</div>
+                        </div>
+                        <div class="menuItem" id="editMessage">
+                            <div class="menuIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                    <path d="M6.414 16L16.556 5.858l-1.414-1.414L5 14.586V16h1.414zm.829 2H3v-4.243L14.435 2.322a1 1 0 0 1 1.414 0l2.829 2.829a1 1 0 0 1 0 1.414L7.243 18zM3 20h18v2H3v-2z"></path>
+                                </svg>
+                            </div>
+                            <div>Edit</div>
+                        </div>
+                        <div class="menuItem" id="deleteMessage">
+                            <div class="menuIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                    <path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"></path>
+                                </svg>
+                            </div>
+                            <div>Delete</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Message Reactions -->
+                    <div class="messageReactions" id="messageReactions">
+                        <div class="reaction">❤️</div>
+                        <div class="reaction">😂</div>
+                        <div class="reaction">😮</div>
+                        <div class="reaction">😢</div>
+                        <div class="reaction">👍</div>
+                    </div>
+                    
+                    <script>
+                        // DOM Elements
+                        const sidebar = document.getElementById('sidebar');
+                        const mainChat = document.getElementById('mainChat');
+                        const chatList = document.getElementById('chatList');
+                        const messagesContainer = document.getElementById('messagesContainer');
+                        const profilePic = document.getElementById('profilePic');
+                        const newChatButton = document.getElementById('newChatButton');
+                        const newChatContainer = document.getElementById('newChatContainer');
+                        const newChatBackButton = document.getElementById('newChatBackButton');
+                        const settingsContainer = document.getElementById('settingsContainer');
+                        const settingsBackButton = document.getElementById('settingsBackButton');
+                        const backButton = document.getElementById('backButton');
+                        const contextMenu = document.getElementById('contextMenu');
+                        const messageActions = document.getElementById('messageActions');
+                        const messageReactions = document.getElementById('messageReactions');
+                        
+                        // Chat items
+                        const chatItems = document.querySelectorAll('.chatItem');
+                        
+                        // Current chat elements
+                        const currentChatProfile = document.getElementById('currentChatProfile');
+                        const currentChatName = document.getElementById('currentChatName');
+                        
+                        // Show main chat when clicking on a chat item
+                        chatItems.forEach(item => {
+                            item.addEventListener('click', () => {
+                                const contactName = item.querySelector('.chatName').textContent;
+                                const profileSrc = item.querySelector('.profilePic').src;
+                                
+                                currentChatName.textContent = contactName;
+                                currentChatProfile.src = profileSrc;
+                                
+                                // In mobile view, hide sidebar and show main chat
+                                if (window.innerWidth <= 768) {
+                                    sidebar.classList.add('hidden');
+                                    mainChat.classList.add('active');
+                                }
+                            });
+                            
+                            // Right click context menu
+                            item.addEventListener('contextmenu', (e) => {
+                                e.preventDefault();
+                                contextMenu.style.display = 'block';
+                                contextMenu.style.left = `${e.clientX}px`;
+                                contextMenu.style.top = `${e.clientY}px`;
+                            });
+                        });
+                        
+                        // Close context menu when clicking elsewhere
+                        document.addEventListener('click', () => {
+                            contextMenu.style.display = 'none';
+                            messageActions.style.display = 'none';
+                            messageReactions.style.display = 'none';
+                        });
+                        
+                        // Back button in mobile view
+                        backButton.addEventListener('click', () => {
+                            sidebar.classList.remove('hidden');
+                            mainChat.classList.remove('active');
+                        });
+                        
+                        // Profile picture click - open settings
+                        profilePic.addEventListener('click', () => {
+                            settingsContainer.style.display = 'block';
+                        });
+                        
+                        // Settings back button
+                        settingsBackButton.addEventListener('click', () => {
+                            settingsContainer.style.display = 'none';
+                        });
+                        
+                        // New chat button
+                        newChatButton.addEventListener('click', () => {
+                            newChatContainer.style.display = 'block';
+                        });
+                        
+                        // New chat back button
+                        newChatBackButton.addEventListener('click', () => {
+                            newChatContainer.style.display = 'none';
+                        });
+                        
+                        // Message hover effects
+                        const sentMessages = document.querySelectorAll('.message.sent');
+                        sentMessages.forEach(message => {
+                            message.addEventListener('mouseenter', () => {
+                                const smileIcon = document.createElement('div');
+                                smileIcon.className = 'smileIcon';
+                                smileIcon.innerHTML = `
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#54656f">
+                                        <path d="M12 22.75C6.072 22.75 1.25 17.928 1.25 12S6.072 1.25 12 1.25 22.75 6.072 22.75 12 17.928 22.75 12 22.75zm0-20C6.9 2.75 2.75 6.9 2.75 12S6.9 21.25 12 21.25s9.25-4.15 9.25-9.25S17.1 2.75 12 2.75z"></path>
+                                        <path d="M12 17.115c-1.892 0-3.633-.95-4.656-2.544-.224-.348-.123-.81.226-1.035.348-.226.812-.124 1.036.226.747 1.162 2.016 1.855 3.395 1.855s2.648-.693 3.396-1.854c.224-.35.688-.45 1.036-.225.35.224.45.688.226 1.036-1.025 1.594-2.766 2.545-4.658 2.545z"></path>
+                                        <circle cx="14.738" cy="9.458" r="1.478"></circle>
+                                        <circle cx="9.262" cy="9.458" r="1.478"></circle>
+                                    </svg>
+                                `;
+                                smileIcon.style.position = 'absolute';
+                                smileIcon.style.left = '-30px';
+                                smileIcon.style.top = '50%';
+                                smileIcon.style.transform = 'translateY(-50%)';
+                                smileIcon.style.cursor = 'pointer';
+                                
+                                smileIcon.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    messageReactions.style.display = 'flex';
+                                    messageReactions.style.left = `${message.offsetLeft}px`;
+                                    messageReactions.style.top = `${message.offsetTop - 40}px`;
+                                });
+                                
+                                message.style.position = 'relative';
+                                message.appendChild(smileIcon);
+                                
+                                // Add check icon
+                                const checkIcon = message.querySelector('.messageTime');
+                                checkIcon.style.position = 'relative';
+                                checkIcon.style.cursor = 'pointer';
+                                
+                                checkIcon.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    messageActions.style.display = 'block';
+                                    messageActions.style.left = `${message.offsetLeft + message.offsetWidth - 150}px`;
+                                    messageActions.style.top = `${message.offsetTop + 30}px`;
+                                });
+                            });
+                            
+                            message.addEventListener('mouseleave', () => {
+                                const smileIcon = message.querySelector('.smileIcon');
+                                if (smileIcon) {
+                                    smileIcon.remove();
+                                }
+                            });
+                        });
+                        
+                        // Add heart reaction
+                        const reactions = document.querySelectorAll('.reaction');
+                        reactions.forEach(reaction => {
+                            reaction.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const heart = document.createElement('div');
+                                heart.textContent = '❤️';
+                                heart.style.position = 'absolute';
+                                heart.style.bottom = '-20px';
+                                heart.style.left = '50%';
+                                heart.style.transform = 'translateX(-50%)';
+                                heart.style.fontSize = '16px';
+                                
+                                const message = e.target.closest('.message');
+                                message.appendChild(heart);
+                                
+                                messageReactions.style.display = 'none';
+                            });
+                        });
+                        
+                        // Responsive behavior
+                        window.addEventListener('resize', () => {
+                            if (window.innerWidth > 768) {
+                                sidebar.classList.remove('hidden');
+                                mainChat.classList.remove('active');
+                            }
+                        });
+                    </script>
+                </body>
+                </html>

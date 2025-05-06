@@ -6,7 +6,7 @@ $border-color: #e0e0e0;
 
 // Assuming header height (including padding) is roughly 80px on desktop, 70px on mobile
 $header-height-desktop: 100px;
-$header-height-mobile: 55px;
+$header-height-mobile: 5px;
 
 .menu-section {
   padding: 120px 0 2rem 0; // Increased top padding to account for fixed header
@@ -451,7 +451,7 @@ $header-height-mobile: 55px;
     }
 
     .menu-content {
-      padding: 10rem 1rem;
+      padding: 1rem;
 
       .menu-grid {
         grid-template-columns: 1fr;

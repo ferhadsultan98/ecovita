@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import "./Home.scss";
 import { FaSyringe } from "react-icons/fa";
 import DescLogo from '../../../public/assets/Fotolar/desclogo.png'
-import MiniLogo from '../../../public/assets/Fotolar/minilogo.png'
+import 
 const Home = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -52,10 +52,12 @@ const Home = () => {
           >
             Ecovita
           </motion.span> */}
-          <img src={DescLogo} alt="DescLogo" className="DescLogo"/>
+          <img src={DescLogo} alt="DescLogo" />
           <div className="separator">
             <span></span>
-            <img src={MiniLogo} alt="MiniLogo" className="MiniLogo"/>
+            <i>
+              <FaSyringe />
+            </i>
             <span></span>
           </div>
           <motion.p

@@ -52,10 +52,12 @@ const Home = () => {
           >
             Ecovita
           </motion.span> */}
-          <img src={DescLogo} alt="DescLogo" className="DescLogo"/>
+          <img src={DescLogo} alt="DescLogo" />
           <div className="separator">
             <span></span>
-            <img src={MiniLogo} alt="MiniLogo" className="MiniLogo"/>
+            <i>
+              <FaSyringe />
+            </i>
             <span></span>
           </div>
           <motion.p
