@@ -74,6 +74,15 @@
           },
           "price": 10.0,
           "image_url": "multi-purpose-cleaner.jpg"
+        },
+        {
+          "id": "6",
+          "name": { "az": "Ecovita Şüşə Təmizləyici" },
+          "description": {
+            "az": "Ləkəsiz parıltı üçün şüşə və güzgü təmizləyicisi."
+          },
+          "price": 7.0,
+          "image_url": "glass-cleaner.jpg"
         }
       ]
     }

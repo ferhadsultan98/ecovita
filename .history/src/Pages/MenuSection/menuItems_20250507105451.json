@@ -60,6 +60,15 @@
           },
           "price": 5.0,
           "image_url": "hand-sanitizer.jpg"
+        },
+        {
+          "id": "4",
+          "name": { "az": "Ecovita Gel Sanitayzer" },
+          "description": {
+            "az": "Uzunmüddətli qoruma təmin edən gel formulası."
+          },
+          "price": 6.5,
+          "image_url": "gel-sanitizer.jpg"
         }
       ]
     },
@@ -74,6 +83,15 @@
           },
           "price": 10.0,
           "image_url": "multi-purpose-cleaner.jpg"
+        },
+        {
+          "id": "6",
+          "name": { "az": "Ecovita Şüşə Təmizləyici" },
+          "description": {
+            "az": "Ləkəsiz parıltı üçün şüşə və güzgü təmizləyicisi."
+          },
+          "price": 7.0,
+          "image_url": "glass-cleaner.jpg"
         }
       ]
     }
