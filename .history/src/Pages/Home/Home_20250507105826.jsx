@@ -68,7 +68,7 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.9 }}
           >
             <a
-              href={`https://wa.me/+994993451234?text=${encodeURIComponent(
+              href={`https://wa.me/+994 993451234?text=${encodeURIComponent(
                 waMessages
               )}`}
               target="_blank"

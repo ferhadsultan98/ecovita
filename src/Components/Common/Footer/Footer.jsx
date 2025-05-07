@@ -69,17 +69,9 @@ const Footer = () => {
             <div className="footerConnect">
               <h4>Connect With Us</h4>
               <div className="socialIcons">
+               
                 <a
-                  href="https://www.facebook.com/puresafesolutions"
-                  aria-label="Facebook"
-                  className="socialIcon"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <GrFacebookOption />
-                </a>
-                <a
-                  href="https://www.instagram.com/puresafesolutions"
+                  href="https://www.instagram.com/ecovita.az"
                   aria-label="Instagram"
                   className="socialIcon"
                   target="_blank"
@@ -87,15 +79,7 @@ const Footer = () => {
                 >
                   <FaInstagram />
                 </a>
-                <a
-                  href="https://www.twitter.com/puresafesolutions"
-                  aria-label="Twitter"
-                  className="socialIcon"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaTwitter />
-                </a>
+              
               </div>
               <div className="footerActions">
                 <a
