@@ -45,7 +45,7 @@
             "az": "Ekoloji cəhətdən təmiz və əsaslı dezinfeksiya vasitəsi"
           },
           "price": 12.5,
-          "image_url": "/assets/Fotolar/Deriveeller750ml.png"
+          "image_url": "/assets/Fotolar/Deriveeller5l.png"
         },
         {
           "id": "2",
@@ -63,12 +63,12 @@
       "items": [
         {
           "id": "3",
-          "name": { "az": "Antiseptik Sprey" },
+          "name": { "az": "Ecovita Əl Sanitayzeri" },
           "description": {
-            "az": "Heyvandarlıq sahəsində effektiv təsirli sprey."
+            "az": "Alkoqol əsaslı, dərini qoruyan əl təmizləyicisi."
           },
           "price": 5.0,
-          "image_url": "/assets/Fotolar/heyvandarliqdezinfeksiya.jpg"
+          "image_url": "hand-sanitizer.jpg"
         }
       ]
     },

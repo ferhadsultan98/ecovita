@@ -40,21 +40,12 @@
       "items": [
         {
           "id": "1",
-          "name": { "az": "Ecovita dəri və əllər üçün təmizləyici 750ml" },
+          "name": { "az": "Ecovita dəri və əllər üçün təmizləyici" },
           "description": {
             "az": "Ekoloji cəhətdən təmiz və əsaslı dezinfeksiya vasitəsi"
           },
           "price": 12.5,
-          "image_url": "/assets/Fotolar/Deriveeller750ml.png"
-        },
-        {
-          "id": "2",
-          "name": { "az": "Ecovita dəri və əllər üçün təmizləyici 5l" },
-          "description": {
-            "az": "Ekoloji cəhətdən təmiz və əsaslı dezinfeksiya vasitəsi"
-          },
-          "price": 12.5,
-          "image_url": "/assets/Fotolar/Deriveeller5l.png"
+          "image_url": "surface-disinfectant.jpg"
         }
       ]
     },
@@ -63,12 +54,12 @@
       "items": [
         {
           "id": "3",
-          "name": { "az": "Antiseptik Sprey" },
+          "name": { "az": "Ecovita Əl Sanitayzeri" },
           "description": {
-            "az": "Heyvandarlıq sahəsində effektiv təsirli sprey."
+            "az": "Alkoqol əsaslı, dərini qoruyan əl təmizləyicisi."
           },
           "price": 5.0,
-          "image_url": "/assets/Fotolar/heyvandarliqdezinfeksiya.jpg"
+          "image_url": "hand-sanitizer.jpg"
         }
       ]
     },
@@ -77,12 +68,12 @@
       "items": [
         {
           "id": "5",
-          "name": { "az": "Ecovita bərk səthlər üçün təmizləyici" },
+          "name": { "az": "Bərk səthlər üçün təmizləyici" },
           "description": {
             "az": "Bərk səthdə olan ləkələri asanlıqla təmizləyən güclü təbii məhsul"
           },
           "price": 10.0,
-          "image_url": "/assets/Fotolar/Berksethler.png"
+          "image_url": "/assets/Fotolar/Bərk səthlər.png"
         }
       ]
     }

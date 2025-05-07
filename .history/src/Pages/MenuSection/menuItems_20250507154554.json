@@ -65,10 +65,10 @@
           "id": "3",
           "name": { "az": "Antiseptik Sprey" },
           "description": {
-            "az": "Heyvandarlıq sahəsində effektiv təsirli sprey."
+            "az": "Heyvandarlıq"
           },
           "price": 5.0,
-          "image_url": "/assets/Fotolar/heyvandarliqdezinfeksiya.jpg"
+          "image_url": "hand-sanitizer.jpg"
         }
       ]
     },
