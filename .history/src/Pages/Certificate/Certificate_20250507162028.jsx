@@ -76,7 +76,7 @@ const CertificatesSection = () => {
                 src={item.imageUrl}
                 alt={item.title}
                 className="itemPreview"
-              />
+              />{" "}
             </a>
             <h3 className="itemTitle">{item.title}</h3>
           </div>

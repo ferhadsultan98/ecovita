@@ -60,10 +60,8 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
               color: $accent-color;
             }
 
-           a {
+            span {
               transition: color 0.3s ease;
-              text-decoration: none;
-              color: inherit;
               
               &:hover {
                 color: $accent-color;
@@ -219,7 +217,6 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
         .footerContactItems {
           align-items: center;
-         
         }
       }
 

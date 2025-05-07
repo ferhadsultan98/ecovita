@@ -41,22 +41,22 @@ const Footer = () => {
                   <i>
                     <FaLocationDot />
                   </i>
-                  <a href="https://maps.app.goo.gl/mqyyw6jxVyPGAPP46" target="_blank">
+                  <span>
                     Azərbaycan Respublikası, AZ1052, Bakı şəhəri, N.Nərimanov
                     rayonu, Əliyar Əliyev 52A
-                  </a>
+                  </span>
                 </div>
                 <div className="contactItem">
                   <i>
                     <FaPhoneAlt />
                   </i>
-                  <a href="tel:+994993451234" target="_blank">+994(99) 345 12 34</a>
+                  <span>+994(99) 345 12 34</span>
                 </div>
                 <div className="contactItem">
                   <i>
                     <FaEnvelope />
                   </i>
-                  <a href="mailto:info@ecoway.az" target="_blank">info@ecoway.az</a>
+                  <span>info@ecoway.az</span>
                 </div>
                 <div className="contactItem">
                   <i>
@@ -99,7 +99,7 @@ const Footer = () => {
             <p className="copyright">
               © {currentYear}{" "}
               <a
-                href="https://pmsystems.az"
+                href="https://pmsystems.az/"
                 target="_blank"
                 rel="noopener noreferrer"
               >

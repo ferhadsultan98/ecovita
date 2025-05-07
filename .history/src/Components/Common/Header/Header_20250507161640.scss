@@ -18,17 +18,17 @@ $scroll-bg: #ffffff;
   &.scrolled {
     background: $scroll-bg;
     padding: 0.8rem 0;
-    border-bottom: 1px solid rgb(178, 178, 178);
   }
 
   .header-container {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
+    border-bottom: 1px solid rgb(178, 178, 178);
     align-items: center;
+
     justify-content: space-between;
     gap: 1rem;
-    padding: 5px 0;
   }
 
   .logo {

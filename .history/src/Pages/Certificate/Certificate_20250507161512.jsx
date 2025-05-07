@@ -77,8 +77,8 @@ const CertificatesSection = () => {
                 alt={item.title}
                 className="itemPreview"
               />
+              <h3 className="itemTitle">{item.title}</h3>
             </a>
-            <h3 className="itemTitle">{item.title}</h3>
           </div>
         ))}
       </div>

@@ -41,7 +41,7 @@ const Footer = () => {
                   <i>
                     <FaLocationDot />
                   </i>
-                  <a href="https://maps.app.goo.gl/mqyyw6jxVyPGAPP46" target="_blank">
+                  <a href="https://maps.app.goo.gl/mqyyw6jxVyPGAPP46">
                     Azərbaycan Respublikası, AZ1052, Bakı şəhəri, N.Nərimanov
                     rayonu, Əliyar Əliyev 52A
                   </a>

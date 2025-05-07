@@ -82,9 +82,6 @@ const Header = () => {
                 <li onClick={() => scrollToSection("disinfectants")}>
                   Dezinfeksiya vasitələri
                 </li>
-                <li onClick={() => scrollToSection("certificates")}>
-                  Məhsul sertifikatları
-                </li>
               </motion.ul>
             )}
           </AnimatePresence>

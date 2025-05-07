@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
 import "./Footer.scss";
 import { IoIosArrowUp } from "react-icons/io";
-import { FaLocationDot } from "react-icons/fa6";
-import { FaInstagram, FaPhoneAlt, FaEnvelope, FaClock } from "react-icons/fa";
+import { GrFacebookOption } from "react-icons/gr";
+import {
+  FaInstagram,
+  FaTwitter,
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaClock,
+} from "react-icons/fa";
 import footerLogo from "../../../../public/assets/Fotolar/logo.png";
 
 const Footer = () => {
@@ -38,30 +45,22 @@ const Footer = () => {
               </p>
               <div className="footerContactItems">
                 <div className="contactItem">
-                  <i>
-                    <FaLocationDot />
-                  </i>
-                  <a href="https://maps.app.goo.gl/mqyyw6jxVyPGAPP46" target="_blank">
+                 
+                  <span>
                     Azərbaycan Respublikası, AZ1052, Bakı şəhəri, N.Nərimanov
                     rayonu, Əliyar Əliyev 52A
-                  </a>
+                  </span>
                 </div>
                 <div className="contactItem">
-                  <i>
-                    <FaPhoneAlt />
-                  </i>
-                  <a href="tel:+994993451234" target="_blank">+994(99) 345 12 34</a>
+                  <FaPhoneAlt />
+                  <span>+994(99) 345 12 34</span>
                 </div>
                 <div className="contactItem">
-                  <i>
-                    <FaEnvelope />
-                  </i>
-                  <a href="mailto:info@ecoway.az" target="_blank">info@ecoway.az</a>
+                  <FaEnvelope />
+                  <span>info@ecoway.az</span>
                 </div>
                 <div className="contactItem">
-                  <i>
-                    <FaClock />
-                  </i>
+                  <FaClock />
                   <span>09:00-18:00</span>
                 </div>
               </div>
@@ -70,6 +69,7 @@ const Footer = () => {
             <div className="footerConnect">
               <h4>Connect With Us</h4>
               <div className="socialIcons">
+               
                 <a
                   href="https://www.instagram.com/ecovita.az"
                   aria-label="Instagram"
@@ -79,6 +79,7 @@ const Footer = () => {
                 >
                   <FaInstagram />
                 </a>
+              
               </div>
               <div className="footerActions">
                 <a
@@ -99,7 +100,7 @@ const Footer = () => {
             <p className="copyright">
               © {currentYear}{" "}
               <a
-                href="https://pmsystems.az"
+                href="https://pmsystems.az/"
                 target="_blank"
                 rel="noopener noreferrer"
               >

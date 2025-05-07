@@ -83,7 +83,7 @@ const Header = () => {
                   Dezinfeksiya vasitələri
                 </li>
                 <li onClick={() => scrollToSection("certificates")}>
-                  Məhsul sertifikatları
+                  Sertifikatlar
                 </li>
               </motion.ul>
             )}
