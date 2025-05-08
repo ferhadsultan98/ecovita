@@ -146,12 +146,13 @@ const MenuSection = () => {
           <div className="container">
             {fetchError && <div className="error-message">{fetchError}</div>}
             <div className="menu-navbar-content">
-              <h2 className="section-title">{title}</h2>
+             
             </div>
           </div>
         </div>
 
         <div className="container menu-content">
+        <h2 className="section-title">{title}</h2>
           {section === "oils" && (
             <>
               <div className="product-info-section">
@@ -509,7 +510,6 @@ const MenuSection = () => {
           )}
           {visibleItems[section].length > 0 ? (
             <AnimatePresence mode="wait">
-              
               <motion.div
                 key={activeFilters[section]}
                 className="menu-grid"

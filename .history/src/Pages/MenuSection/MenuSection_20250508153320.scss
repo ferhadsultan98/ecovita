@@ -7,14 +7,22 @@
   margin-top: 80px; /* Space for fixed header */
 
   .menu-navbar-wrapper {
- 
+    position: sticky;
     top: 76px; /* Below header */
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     z-index: 100;
     transition: all 0.3s ease;
 
-  
+    &.sticky {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      .section-title{
+        font-size: 1.5rem !important;
+      }
+      .menu-filter-button {
+        font-size: 0.8rem !important;
+      }
+    }
 
     .container {
       max-width: 1200px;
@@ -44,7 +52,6 @@
           text-transform: uppercase;
           letter-spacing: 1px;
           transition: 0.5s;
-          padding: 15px 0;
         }
 
         .menu-search {

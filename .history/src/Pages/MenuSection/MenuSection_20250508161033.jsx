@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./MenuSection.scss";
-import productData from "./menuItems.json"; 
+import productData from "./menuItems.json";
 
 const MenuSection = () => {
   const [activeFilters, setActiveFilters] = useState({
@@ -109,7 +109,8 @@ const MenuSection = () => {
     const handleScroll = () => {
       ["oils", "disinfectants"].forEach((section) => {
         if (sectionRefs[section].current && navbarRefs[section].current) {
-          const sectionTop = sectionRefs[section].current.getBoundingClientRect().top;
+          const sectionTop =
+            sectionRefs[section].current.getBoundingClientRect().top;
           setIsNavbarSticky((prev) => ({
             ...prev,
             [section]: sectionTop <= 0,
@@ -136,7 +137,11 @@ const MenuSection = () => {
 
   const renderMenuSection = (section, title, sectionId) => {
     return (
-      <section className="menu-section" id={sectionId} ref={sectionRefs[section]}>
+      <section
+        className="menu-section"
+        id={sectionId}
+        ref={sectionRefs[section]}
+      >
         <div
           className={`menu-navbar-wrapper ${
             isNavbarSticky[section] ? "sticky" : ""
@@ -145,9 +150,7 @@ const MenuSection = () => {
         >
           <div className="container">
             {fetchError && <div className="error-message">{fetchError}</div>}
-            <div className="menu-navbar-content">
-              <h2 className="section-title">{title}</h2>
-            </div>
+            <h2 className="section-title">{title}</h2>
           </div>
         </div>
 
@@ -319,15 +322,15 @@ const MenuSection = () => {
                         zəngindir. Tərkibində olan omega yağları sayəsində kətan
                         yağı orqanizmdə maddələr mübadiləsini yaxşılaşdırır,
                         qanda xolesterinin miqdarının azalmasına səbəb olur,
-                        damar divarlarının elastikliyini artırır. Kətan yağı həzm
-                        sisteminin və qaraciyər funksiyasının yaxşılaşmasına,
-                        qəbizliyin, qıcqırmanın aradan qalxmasına səbəb olur,
-                        parazit əleyhinə təsir göstərir.
+                        damar divarlarının elastikliyini artırır. Kətan yağı
+                        həzm sisteminin və qaraciyər funksiyasının
+                        yaxşılaşmasına, qəbizliyin, qıcqırmanın aradan
+                        qalxmasına səbəb olur, parazit əleyhinə təsir göstərir.
                       </p>
                       <p>
                         <strong>Kosmetik effektiv:</strong> Dərinin vitamin və
-                        minerallara olan ehtiyacını ödəyir, dərini cavanlaşdırır,
-                        ona bakterisid təsir göstərir.
+                        minerallara olan ehtiyacını ödəyir, dərini
+                        cavanlaşdırır, ona bakterisid təsir göstərir.
                       </p>
                       <ul>
                         <li>
@@ -398,7 +401,8 @@ const MenuSection = () => {
                       </p>
                       <p>
                         <strong>Buraxılış forması:</strong> 100 ml şüşə qabda,
-                        təlimat vərəqi ilə birgə karton qutuda yerləşdirilmişdir.
+                        təlimat vərəqi ilə birgə karton qutuda
+                        yerləşdirilmişdir.
                       </p>
                       <p>
                         <strong>Saxlama şəraiti:</strong> Qapalı ambalaj
@@ -442,7 +446,9 @@ const MenuSection = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {expandedSection === "disinfectants" ? "Bağla" : "Ətraflı Oxu"}
+                  {expandedSection === "disinfectants"
+                    ? "Bağla"
+                    : "Ətraflı Oxu"}
                 </motion.button>
               </div>
               <AnimatePresence>
@@ -509,11 +515,13 @@ const MenuSection = () => {
           )}
           {visibleItems[section].length > 0 ? (
             <AnimatePresence mode="wait">
-              
               <motion.div
                 key={activeFilters[section]}
                 className="menu-grid"
-                variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+                }}
                 initial="hidden"
                 animate="visible"
                 exit={{ opacity: 0 }}
@@ -524,14 +532,18 @@ const MenuSection = () => {
                     <motion.div
                       key={item.id}
                       className="menu-item"
-                      variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.5 } } }}
+                      variants={{
+                        hidden: { y: 20, opacity: 0 },
+                        visible: {
+                          y: 0,
+                          opacity: 1,
+                          transition: { duration: 0.5 },
+                        },
+                      }}
                     >
                       <div className="menu-item-card">
                         <div className="menu-item-image">
-                          <img
-                            src={item.image_url}
-                            alt={item.name.az}
-                          />
+                          <img src={item.image_url} alt={item.name.az} />
                           <div className="menu-item-category-badge">
                             {item.category.az}
                           </div>

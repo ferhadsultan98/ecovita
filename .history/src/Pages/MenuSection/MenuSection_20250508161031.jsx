@@ -144,11 +144,9 @@ const MenuSection = () => {
           ref={navbarRefs[section]}
         >
           <div className="container">
-            {fetchError && <div className="error-message">{fetchError}</div>}
-            <div className="menu-navbar-content">
-              <h2 className="section-title">{title}</h2>
-            </div>
-          </div>
+  {fetchError && <div className="error-message">{fetchError}</div>}
+  <h2 className="section-title">{title}</h2>
+</div>
         </div>
 
         <div className="container menu-content">

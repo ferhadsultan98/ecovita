@@ -509,7 +509,7 @@ const MenuSection = () => {
           )}
           {visibleItems[section].length > 0 ? (
             <AnimatePresence mode="wait">
-              
+               <h2 className="section-title">{title}</h2>
               <motion.div
                 key={activeFilters[section]}
                 className="menu-grid"
