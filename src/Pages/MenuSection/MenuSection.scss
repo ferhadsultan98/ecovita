@@ -8,15 +8,20 @@
 
   .menu-navbar-wrapper {
     position: sticky;
-    top: 80px; /* Below header */
+    top: 76px; /* Below header */
     background: rgba(255, 255, 255, 0.95);
-
     backdrop-filter: blur(10px);
     z-index: 100;
     transition: all 0.3s ease;
 
     &.sticky {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      .section-title{
+        font-size: 1.5rem !important;
+      }
+      .menu-filter-button {
+        font-size: 0.8rem !important;
+      }
     }
 
     .container {
@@ -34,22 +39,24 @@
       }
 
       .menu-navbar-content {
-        padding: 20px 0;
+        padding: 5px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
 
         .section-title {
-          font-size: 2.5rem;
+          font-size: 1.8rem;
           font-weight: 700;
           color: #2c3e50;
-          margin: 0 0 20px;
           text-align: center;
           text-transform: uppercase;
           letter-spacing: 1px;
+          transition: 0.5s;
         }
 
         .menu-search {
           display: flex;
           justify-content: center;
-          margin-bottom: 20px;
 
           .search-input-wrapper {
             position: relative;
@@ -67,7 +74,7 @@
 
             .search-input {
               width: 100%;
-              padding: 12px 20px 12px 50px;
+              padding: 8px 45px;
               border: 2px solid #dee2e6;
               border-radius: 25px;
               font-size: 1rem;
@@ -102,6 +109,7 @@
               cursor: pointer;
               font-size: 1rem;
               transition: all 0.3s ease;
+              outline: none;
 
               &:hover {
                 background: #c82333;
@@ -136,6 +144,7 @@
               cursor: pointer;
               transition: all 0.3s ease;
               margin: 0 10px;
+              outline: none;
 
               &:hover {
                 background: #5aa5a5;
@@ -166,12 +175,13 @@
                   background: #e9ecef;
                   border: none;
                   border-radius: 20px;
-                  padding: 10px 20px;
+                  padding: 8px;
                   font-size: 1rem;
                   color: #343a40;
                   cursor: pointer;
                   transition: all 0.3s ease;
                   white-space: nowrap;
+                  outline: none;
 
                   &:hover {
                     background: #dee2e6;
@@ -210,7 +220,7 @@
 
       .product-info-preview {
         h3 {
-          font-size: 2rem;
+          font-size: 1.5rem;
           font-weight: 700;
           color: #2c3e50;
           margin-bottom: 15px;
@@ -368,7 +378,7 @@
       padding: 40px 20px;
 
       h3 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         color: #2c3e50;
         margin-bottom: 10px;
       }
@@ -425,14 +435,15 @@
 
       .container {
         .menu-navbar-content {
+          padding-top: 10px;
           .section-title {
-            font-size: 2rem;
+            font-size: 1rem !important;
           }
 
           .menu-search {
             .search-input-wrapper {
               .search-input {
-                padding: 10px 15px 10px 40px;
+                padding: 5px 30px !important;
                 font-size: 0.9rem;
               }
 
@@ -448,13 +459,12 @@
               .scroll-button {
                 width: 35px;
                 height: 35px;
-              
               }
 
               .menu-filter-list {
                 .menu-filter-item {
                   .menu-filter-button {
-                    padding: 8px 15px;
+                    padding: 8px 15px ;
                     font-size: 0.9rem;
                   }
                 }
@@ -471,7 +481,7 @@
 
         .product-info-preview {
           h3 {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
           }
 
           p {
@@ -479,13 +489,14 @@
           }
 
           .read-more-button {
-            padding: 8px 15px;
+            padding: 5px !important;
             font-size: 0.9rem;
           }
         }
 
         .product-info-details {
-          p, ul li {
+          p,
+          ul li {
             font-size: 0.9rem;
           }
 
@@ -529,7 +540,7 @@
       .container {
         .menu-navbar-content {
           .section-title {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
           }
 
           .menu-search {
@@ -556,7 +567,7 @@
               .menu-filter-list {
                 .menu-filter-item {
                   .menu-filter-button {
-                    padding: 6px 12px;
+                    padding: 5px;
                     font-size: 0.85rem;
                   }
                 }
@@ -573,21 +584,22 @@
 
         .product-info-preview {
           h3 {
-            font-size: 1.4rem;
+            font-size: 1rem;
           }
 
           p {
-            font-size: 0.9rem;
+            font-size: 0.7rem;
           }
 
           .read-more-button {
-            padding: 6px 12px;
+            padding: 5px !important;
             font-size: 0.85rem;
           }
         }
 
         .product-info-details {
-          p, ul li {
+          p,
+          ul li {
             font-size: 0.85rem;
           }
 
@@ -609,11 +621,11 @@
 
             .menu-item-content {
               .menu-item-title {
-                font-size: 1.2rem;
+                font-size: 1rem;
               }
 
               .menu-item-description {
-                font-size: 0.85rem;
+                font-size: 0.70rem;
               }
             }
           }
