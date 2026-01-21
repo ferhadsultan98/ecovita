@@ -3,90 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zaha Hadid | Digital Archive</title>
+    <title>Matrix City Architect</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        
-        /* UI ARAYÜZ KATMANI */
-        #ui {
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* MATRIX ARAYÜZ STİLİ (SOL PANEL) */
+        #gui-panel {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            box-sizing: border-box;
-            padding: 40px;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            background: rgba(0, 10, 0, 0.85);
+            border: 1px solid #0F0;
+            padding: 20px;
+            color: #0F0;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        h2 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #0F0;
+            padding-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
             display: flex;
-            flex-direction: column;
             justify-content: space-between;
-        }
-
-        .header {
-            color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
-        }
-
-        h1 { margin: 0; font-weight: 300; letter-spacing: 5px; font-size: 24px; text-transform: uppercase; }
-        .sub { font-size: 10px; opacity: 0.7; letter-spacing: 2px; }
-
-        .stats {
-            align-self: flex-end;
-            text-align: right;
-            color: rgba(255, 255, 255, 0.5);
             font-size: 12px;
-            font-family: monospace;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        /* Matrix Tarzı Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #003300;
+            border: 1px solid #0F0;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 14px;
+            width: 14px;
+            background: #0F0;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 0 5px #0F0;
+        }
+
+        .status-text {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 20px;
             line-height: 1.5;
         }
 
-        .scan-line {
-            width: 100%; height: 1px;
-            background: linear-gradient(90deg, transparent, #00ffcc, transparent);
-            position: absolute; top: 50%; left: 0;
-            opacity: 0.2;
-        }
-
         #loading {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #00ffcc; font-family: monospace; font-size: 12px;
-            animation: blink 1s infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0F0;
+            font-size: 24px;
+            pointer-events: none;
+            display: none;
+            text-shadow: 0 0 10px #0F0;
         }
-
-        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="loading">GENERATING GEOMETRY...</div>
-
-    <div id="ui">
-        <div class="header">
-            <h1>Structure_01</h1>
-            <div class="sub">HEYDAR ALIYEV CENTER // BAKU</div>
-            <div class="sub">PARAMETRIC RECONSTRUCTION</div>
+    <div id="gui-panel">
+        <h2>MATRIX ARCHITECT</h2>
+        
+        <div class="control-group">
+            <label>City Spread (Radius) <span id="val-spread">60</span></label>
+            <input type="range" id="spread" min="20" max="150" value="60">
         </div>
-        <div class="stats">
-            <div>VERTICES: <span id="v-count">0</span></div>
-            <div>POLY COUNT: HIGH</div>
-            <div>RENDERING: WEBGL2</div>
-            <div>SCANNING_SECTOR: <span id="scan-val">00</span></div>
+
+        <div class="control-group">
+            <label>Building Height <span id="val-height">1.0</span></label>
+            <input type="range" id="height" min="0.5" max="4.0" step="0.1" value="1.5">
+        </div>
+
+        <div class="control-group">
+            <label>Particle Density <span id="val-density">50%</span></label>
+            <input type="range" id="density" min="10" max="90" value="50">
+        </div>
+
+        <div class="status-text">
+            > SYSTEM: ONLINE<br>
+            > RENDERING: PROCEDURAL_CITY<br>
+            > MOUSE: ORBIT / ZOOM
         </div>
     </div>
 
+    <div id="loading">GENERATING NEW MATRIX...</div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 
     <script>
-        // --- SAHNE KURULUMU ---
+        // --- TEMEL KURULUM ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x020202); // Derin siyah/gri
-        scene.fog = new THREE.FogExp2(0x020202, 0.015);
+        scene.fog = new THREE.FogExp2(0x000000, 0.015); // Derinlik için sis
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(-30, 15, 40); // Fotoğrafa benzer bir açı
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.set(0, 40, 80);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -95,228 +148,151 @@
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI / 2; // Yerin altına girmeyi engelle
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
 
-        // --- GELİŞMİŞ GEOMETRİ ALGORİTMASI ---
-        // Zaha Hadid'in yapısını taklit eden özel fonksiyon
+        // --- DEĞİŞKENLER ---
+        let citySystem; // Nokta bulutu sistemimiz
         
-        // Grid boyutu (Ne kadar yüksek olursa o kadar detaylı)
-        const SEGMENTS_X = 150; 
-        const SEGMENTS_Z = 150;
-        const geometry = new THREE.PlaneGeometry(60, 60, SEGMENTS_X, SEGMENTS_Z);
-        
-        const count = geometry.attributes.position.count;
-        const positions = geometry.attributes.position;
+        // Parametreler (Varsayılan)
+        const params = {
+            spread: 60,      // Şehrin genişliği
+            heightMod: 1.5,  // Yükseklik çarpanı
+            density: 0.5     // Bina doluluk oranı
+        };
 
-        // Geometriyi manipüle et
-        for (let i = 0; i < count; i++) {
-            const x = positions.getX(i);
-            const y = positions.getY(i); // PlaneGeometry'de Y aslında derinliktir, biz Z yapacağız
-            const z = positions.getZ(i); // PlaneGeometry'de Z sıfırdır
-
-            // Koordinatları düzelt (Three.js koordinat sistemine göre yatay düzlem)
-            // x = x, y (height) = 0, z = y (from loop)
-            // Bizim için X: Genişlik, Z: Derinlik, Y: Yükseklik olacak.
-            
-            // --- MATEMATİKSEL FORMÜL ---
-            // 1. Temel Dalga (Wave):
-            let height = 0;
-
-            // Normalize edilmiş koordinatlar (-1 ile 1 arası gibi düşünelim)
-            const nx = x / 30;
-            const nz = y / 30; // Not: PlaneGeometry'nin Y'si bizim Z'miz oluyor
-
-            // Ana Tepe (The Main Peak) - Binanın yüksek camlı kısmı
-            // X ekseninde hafif kayık bir Gaussian eğrisi
-            const peak = 18 * Math.exp(-1.5 * (Math.pow(nx + 0.2, 2) + Math.pow(nz, 2)));
-
-            // Kabuk Kıvrımı (The Shell Curl)
-            // Yere doğru süzülen etek kısımları
-            const wave = 5 * Math.cos(nx * 2.5) * Math.cos(nz * 2.5);
-
-            // Zemin ile birleştirme (Smooth blend)
-            // Kenarlara gittikçe sıfıra yaklaşsın
-            const edgeFactor = Math.max(0, 1 - Math.sqrt(nx*nx + nz*nz));
-            
-            // Asimetrik akış (Fotoğraftaki gibi sol tarafın kıvrılıp inmesi)
-            const asymmetry = Math.sin(nx + nz) * 2;
-
-            // Hepsini birleştir
-            // Formül: Tepe noktası + dalga etkisi, ama kenarlara gidince sönümleniyor.
-            height = (peak + wave * 0.5 + asymmetry) * edgeFactor;
-
-            // Negatif değerleri (yerin altı) düzelt, zemin düz olsun
-            if (height < 0) height = 0;
-
-            // Fotoğraftaki gibi ön yüzün "kesik" ve dik olması için:
-            // Ön tarafa doğru (z pozitifken) eğimi sertleştiriyoruz.
-            if (nz > 0.2 && height > 1) {
-                height *= 1 - (nz - 0.2); 
+        // --- ŞEHİR OLUŞTURMA FONKSİYONU ---
+        function generateCity() {
+            // Eğer eski bir şehir varsa sahneden sil
+            if (citySystem) {
+                scene.remove(citySystem);
+                citySystem.geometry.dispose();
             }
 
-            // Pozisyonları güncelle
-            positions.setZ(i, y); // Plane'in Y'si Z oluyor
-            positions.setY(i, height); // Yükseklik hesaplanan değer
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const colors = []; // Renk varyasyonları için
+
+            // Grid ayarları
+            const gridSize = params.spread; 
+            const step = 2; // Binalar arası boşluk
+
+            // Grid döngüsü
+            for (let x = -gridSize; x <= gridSize; x += step) {
+                for (let z = -gridSize; z <= gridSize; z += step) {
+                    
+                    // 1. Şehir sınırlarını belirle (Dairesel yapı)
+                    const dist = Math.sqrt(x*x + z*z);
+                    if (dist > gridSize) continue;
+
+                    // 2. Rastgelelik (Perlin noise yerine basit Math.random kullanıyoruz)
+                    // Merkezde binalar daha yoğun, kenarlarda daha seyrek
+                    const chance = Math.random();
+                    const densityThreshold = 1 - params.density; // Slider'a göre eşik
+                    
+                    // Merkezden uzaklaştıkça bina olma ihtimalini düşür
+                    const falloff = 1 - (dist / gridSize); 
+
+                    if (chance > densityThreshold - (falloff * 0.2)) {
+                        
+                        // Bu noktada bir bina var! Şimdi binayı "pixel" olarak inşa edelim.
+                        
+                        // Bina yüksekliği: Merkezde yüksek, kenarda alçak + rastgelelik
+                        let buildingHeight = (Math.random() * 20 + 5) * falloff * params.heightMod;
+                        
+                        // Çok kısa binaları ele (zemin gürültüsü)
+                        if (buildingHeight < 2) buildingHeight = 0;
+
+                        // Binanın dikey noktalarını oluştur (Katlar gibi)
+                        for (let y = 0; y < buildingHeight; y += 0.8) {
+                            positions.push(x, y, z);
+
+                            // Renk hesaplama: Tabanda koyu yeşil, tepede parlak beyaz/yeşil
+                            // Matrix kodu gibi parlaması için
+                            if (y > buildingHeight - 2) {
+                                // Çatı kısımları daha parlak
+                                colors.push(0.8, 1.0, 0.8);
+                            } else {
+                                // Alt kısımlar klasik Matrix yeşili
+                                colors.push(0.0, Math.random() * 0.5 + 0.2, 0.0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            // Matrix materyali (Noktalar)
+            const material = new THREE.PointsMaterial({
+                size: 0.4,
+                vertexColors: true, // Her noktanın kendi rengi olsun
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending // Parlama efekti verir
+            });
+
+            citySystem = new THREE.Points(geometry, material);
+            scene.add(citySystem);
+            
+            console.log("City Generated. Points:", positions.length / 3);
         }
 
-        geometry.computeVertexNormals();
+        // --- ZEMİN GRID'İ (Infinite Grid hissi için) ---
+        const gridHelper = new THREE.GridHelper(300, 100, 0x004400, 0x001100);
+        scene.add(gridHelper);
 
-        // --- MATERYAL VE GÖRSEL EFEKTLER ---
-
-        // Shader Material: Matrix/Blueprint hissi veren özel materyal
-        // Vertex'lerin yüksekliğine ve tarama çizgisine göre renk değiştirecek.
+        // --- UI BAĞLANTILARI ---
+        const elSpread = document.getElementById('spread');
+        const elHeight = document.getElementById('height');
+        const elDensity = document.getElementById('density');
         
-        const vertexShader = `
-            varying vec3 vPos;
-            varying float vScan;
-            uniform float uTime;
-            
-            void main() {
-                vPos = position;
-                
-                // Tarama çizgisi efekti (Z ekseninde hareket eder)
-                float scanPos = sin(uTime * 0.5) * 30.0;
-                float dist = abs(position.z - scanPos);
-                
-                // Eğer scan çizgisine yakınsa vScan değeri artar
-                vScan = 1.0 - smoothstep(0.0, 5.0, dist);
+        const valSpread = document.getElementById('val-spread');
+        const valHeight = document.getElementById('val-height');
+        const valDensity = document.getElementById('val-density');
 
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `;
+        function updateCity() {
+            // Değerleri güncelle
+            params.spread = parseInt(elSpread.value);
+            params.heightMod = parseFloat(elHeight.value);
+            params.density = parseInt(elDensity.value) / 100;
 
-        const fragmentShader = `
-            varying vec3 vPos;
-            varying float vScan;
-            
-            void main() {
-                // Temel ızgara rengi (Koyu yeşil/mavi)
-                vec3 baseColor = vec3(0.0, 0.2, 0.2);
-                
-                // Tarama çizgisi rengi (Parlak Cyan/Beyaz)
-                vec3 scanColor = vec3(0.0, 1.0, 0.8);
-                
-                // Yüksekliğe göre hafif renk değişimi
-                float heightGlow = vPos.y / 20.0;
-                baseColor += vec3(0.0, heightGlow * 0.5, heightGlow);
+            // Etiketleri güncelle
+            valSpread.innerText = params.spread;
+            valHeight.innerText = params.heightMod.toFixed(1) + "x";
+            valDensity.innerText = elDensity.value + "%";
 
-                // Grid çizgileri oluşturma (Wireframe benzeri ama shader ile)
-                // Bu teknik wireframe:true yerine shader içinde grid çizer, daha estetiktir.
-                // Modulo kullanarak çizgileri buluyoruz
-                float gridX = step(0.98, fract(vPos.x * 0.5)); // Sıklık
-                float gridZ = step(0.98, fract(vPos.z * 0.5));
-                float gridLine = max(gridX, gridZ);
-
-                // Renkleri karıştır
-                vec3 finalColor = mix(baseColor * 0.1, baseColor, gridLine);
-                
-                // Tarama ışığını ekle
-                finalColor += scanColor * vScan * gridLine * 2.0;
-                
-                // Sadece çizgileri ve biraz dolguyu göster
-                float alpha = 0.1 + (gridLine * 0.8) + (vScan * 0.5);
-
-                gl_FragColor = vec4(finalColor, alpha);
-            }
-        `;
-
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: { value: 0 }
-            },
-            vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
-            transparent: true,
-            side: THREE.DoubleSide,
-            depthWrite: false, // Glow efektleri için önemli
-            blending: THREE.AdditiveBlending // Işıkların üst üste binip parlaması için
-        });
-
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
-
-        // Zemin Izgarası (Daha geniş perspektif için)
-        const floorGrid = new THREE.GridHelper(200, 50, 0x111111, 0x050505);
-        floorGrid.position.y = -0.1;
-        scene.add(floorGrid);
-
-        // --- PARÇACIK EFEKTİ (Veri noktaları) ---
-        // Sadece binanın tepe noktalarına rastgele "veri" noktaları koyalım
-        const particlesGeometry = new THREE.BufferGeometry();
-        const particleCount = 2000;
-        const pArray = new Float32Array(particleCount * 3);
-
-        for(let i=0; i<particleCount * 3; i+=3) {
-            // Rastgele bir nokta seç (geometry içinden)
-            const rIndex = Math.floor(Math.random() * (positions.count));
-            pArray[i] = positions.getX(rIndex);
-            pArray[i+1] = positions.getY(rIndex);
-            pArray[i+2] = positions.getZ(rIndex);
+            // Şehri yeniden oluştur
+            generateCity();
         }
-        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(pArray, 3));
-        const particleMaterial = new THREE.PointsMaterial({
-            color: 0x00ffcc,
-            size: 0.1,
-            transparent: true,
-            opacity: 0.8
-        });
-        const particles = new THREE.Points(particlesGeometry, particleMaterial);
-        scene.add(particles);
 
+        // Event Listeners (Slider değişince çalışır)
+        elSpread.addEventListener('input', updateCity);
+        elHeight.addEventListener('input', updateCity);
+        elDensity.addEventListener('input', updateCity);
 
-        // --- POST PROCESSING (BLOOM EFEKTİ / PARLAMA) ---
-        const renderScene = new THREE.RenderPass(scene, camera);
-        
-        // UnrealBloomPass parametreleri: Resolution, Strength, Radius, Threshold
-        const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        bloomPass.threshold = 0;
-        bloomPass.strength = 1.2; // Parlaklık şiddeti
-        bloomPass.radius = 0.5;
+        // İlk başlatma
+        generateCity();
 
-        const composer = new THREE.EffectComposer(renderer);
-        composer.addPass(renderScene);
-        composer.addPass(bloomPass);
-
-        // --- ANIMASYON ---
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('v-count').innerText = positions.count;
-
-        const clock = new THREE.Clock();
-
+        // --- ANIMASYON DÖNGÜSÜ ---
         function animate() {
             requestAnimationFrame(animate);
-
-            const elapsedTime = clock.getElapsedTime();
-
-            // Shader'a zamanı gönder (Tarama çizgisi için)
-            material.uniforms.uTime.value = elapsedTime;
-
-            // Hafif kamera hareketi (Nefes alma hissi)
-            mesh.rotation.y = Math.sin(elapsedTime * 0.05) * 0.05;
             
-            // Parçacıklar hafifçe yukarı süzülsün
-            const pPos = particles.geometry.attributes.position.array;
-            for(let i=1; i<particleCount*3; i+=3) {
-                pPos[i] += 0.01; // Y ekseninde yukarı
-                if (pPos[i] > 20) pPos[i] = 0; // Çok yükselirse sıfırla
-            }
-            particles.geometry.attributes.position.needsUpdate = true;
-
-            // UI Güncelleme
-            document.getElementById('scan-val').innerText = Math.floor((Math.sin(elapsedTime) + 1) * 50);
-
+            // Hafif kamera hareketi
             controls.update();
-            // renderer.render(scene, camera); yerine composer kullanıyoruz
-            composer.render();
+            
+            // Şehre hafif bir "veri akışı" titremesi ekleyebiliriz (Opsiyonel)
+            // Performans için şu an kapalı, statik render daha net.
+
+            renderer.render(scene, camera);
         }
 
-        // Resize
+        // Pencere Boyutlandırma
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
         });
 
         animate();
