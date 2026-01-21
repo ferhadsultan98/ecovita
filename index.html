@@ -1,13 +1,484 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" href="./public/assets/Fotolar/logobrowser.png" type="image/x-icon">
-    <title>Ecovita - Təbiətdən gələn sağlamlıq</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realistic Deniz Simülasyonu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(180deg, #000428 0%, #004e92 50%, #000428 100%);
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: grab;
+            user-select: none;
+        }
+
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 14px;
+        }
+
+        .weather-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .weather-btn.active {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.05);
+        }
+
+        .stats {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .controls, .stats {
+                font-size: 11px;
+                padding: 10px;
+            }
+            
+            .weather-btn {
+                padding: 6px 12px;
+                font-size: 10px;
+                margin: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="controls">
+        <div>Hava Durumu:</div>
+        <button class="weather-btn active" data-weather="sunny">☀️ Güneşli</button>
+        <button class="weather-btn" data-weather="foggy">🌫️ Sisli</button>
+        <button class="weather-btn" data-weather="rainy">🌧️ Yağmurlu</button>
+        <button class="weather-btn" data-weather="snowy">❄️ Karlı</button>
+        <button class="weather-btn" data-weather="stormy">⛈️ Fırtınalı</button>
+    </div>
+
+    <div class="stats">
+        <div id="windSpeed">Rüzgar: 12 km/s</div>
+        <div id="waveHeight">Dalga Yükseklik: 1.2m</div>
+        <div id="towerStatus">Kule: Sabit</div>
+    </div>
+
+    <script>
+        class SeaSimulation {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resizeCanvas();
+                
+                this.weather = 'sunny';
+                this.windSpeed = 0.5;
+                this.waveHeight = 0.8;
+                this.waveSpeed = 0.02;
+                this.towerSway = 0;
+                
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.isDragging = false;
+                
+                this.waves = [];
+                this.particles = [];
+                this.foam = [];
+                
+                this.initWaves();
+                this.setupEvents();
+                this.animate();
+            }
+
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            initWaves() {
+                for(let i = 0; i < 5; i++) {
+                    this.waves.push({
+                        amplitude: 40 + Math.random() * 30,
+                        frequency: 0.01 + Math.random() * 0.02,
+                        speed: 0.5 + Math.random() * 0.3,
+                        phase: Math.random() * Math.PI * 2,
+                        color: '#1e3a8a'
+                    });
+                }
+            }
+
+            setupEvents() {
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Mouse events
+                this.canvas.addEventListener('mousedown', (e) => {
+                    this.isDragging = true;
+                    this.mouseX = e.clientX;
+                    this.mouseY = e.clientY;
+                });
+                
+                this.canvas.addEventListener('mousemove', (e) => {
+                    this.mouseX = e.clientX;
+                    this.mouseY = e.clientY;
+                });
+                
+                this.canvas.addEventListener('mouseup', () => {
+                    this.isDragging = false;
+                });
+                
+                // Touch events for mobile
+                this.canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.isDragging = true;
+                    const touch = e.touches[0];
+                    this.mouseX = touch.clientX;
+                    this.mouseY = touch.clientY;
+                });
+                
+                this.canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    this.mouseX = touch.clientX;
+                    this.mouseY = touch.clientY;
+                });
+                
+                this.canvas.addEventListener('touchend', () => {
+                    this.isDragging = false;
+                });
+
+                // Weather buttons
+                document.querySelectorAll('.weather-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.weather-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.weather = e.target.dataset.weather;
+                        this.updateWeather();
+                    });
+                });
+            }
+
+            updateWeather() {
+                switch(this.weather) {
+                    case 'sunny':
+                        this.windSpeed = 0.3 + Math.random() * 0.4;
+                        this.waveHeight = 0.6 + Math.random() * 0.4;
+                        break;
+                    case 'foggy':
+                        this.windSpeed = 0.8 + Math.random() * 0.6;
+                        this.waveHeight = 1.0 + Math.random() * 0.5;
+                        break;
+                    case 'rainy':
+                        this.windSpeed = 1.2 + Math.random() * 0.8;
+                        this.waveHeight = 1.5 + Math.random() * 0.7;
+                        break;
+                    case 'snowy':
+                        this.windSpeed = 0.9 + Math.random() * 0.5;
+                        this.waveHeight = 1.2 + Math.random() * 0.6;
+                        break;
+                    case 'stormy':
+                        this.windSpeed = 2.0 + Math.random() * 1.0;
+                        this.waveHeight = 2.5 + Math.random() * 1.5;
+                        break;
+                }
+            }
+
+            createFoam(x, y) {
+                for(let i = 0; i < 3; i++) {
+                    this.foam.push({
+                        x: x + (Math.random() - 0.5) * 50,
+                        y: y + (Math.random() - 0.5) * 20,
+                        vx: (Math.random() - 0.5) * 2 + this.windSpeed * 0.5,
+                        vy: Math.random() * 0.5 - 0.2,
+                        life: 1.0,
+                        size: 2 + Math.random() * 3
+                    });
+                }
+            }
+
+            update() {
+                // Update waves
+                this.waves.forEach(wave => {
+                    wave.phase += (this.waveSpeed + this.windSpeed * 0.5) * 0.02;
+                });
+
+                // Tower sway effect
+                this.towerSway = Math.sin(Date.now() * 0.001 + this.mouseX * 0.001) * 
+                                (this.windSpeed * 5) * 
+                                (this.canvas.height * 0.0003);
+
+                // Create foam particles
+                if(Math.random() < 0.3) {
+                    const waveY = this.getWaveHeight(0);
+                    this.createFoam(this.canvas.width, waveY);
+                }
+
+                // Update foam
+                this.foam = this.foam.filter(p => {
+                    p.x += p.vx + this.windSpeed * 0.3;
+                    p.y += p.vy;
+                    p.life -= 0.02;
+                    p.vy += 0.1;
+                    return p.life > 0 && p.x < this.canvas.width + 50;
+                });
+
+                // Update stats
+                document.getElementById('windSpeed').textContent = 
+                    `Rüzgar: ${Math.round(this.windSpeed * 20)} km/s`;
+                document.getElementById('waveHeight').textContent = 
+                    `Dalga Yükseklik: ${Math.round(this.waveHeight * 10)/10}m`;
+                document.getElementById('towerStatus').textContent = 
+                    `Kule: ${Math.abs(this.towerSway) > 5 ? 'Sallanma!' : 'Sabit'}`;
+            }
+
+            getWaveHeight(x) {
+                let height = 0;
+                this.waves.forEach((wave, i) => {
+                    height += Math.sin(x * wave.frequency + wave.phase) * wave.amplitude * 
+                             (this.waveHeight * 0.5 + 0.5) * (1 - i * 0.2);
+                });
+                return this.canvas.height * 0.65 + height;
+            }
+
+            drawSky() {
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height * 0.4);
+                
+                switch(this.weather) {
+                    case 'sunny':
+                        gradient.addColorStop(0, '#87CEEB');
+                        gradient.addColorStop(0.3, '#98D8E8');
+                        gradient.addColorStop(0.6, '#FFD700');
+                        gradient.addColorStop(1, '#FFA500');
+                        break;
+                    case 'foggy':
+                        gradient.addColorStop(0, '#D3D3D3');
+                        gradient.addColorStop(0.5, '#A9A9A9');
+                        gradient.addColorStop(1, '#808080');
+                        break;
+                    case 'rainy':
+                        gradient.addColorStop(0, '#4A5D7A');
+                        gradient.addColorStop(0.5, '#2E3B55');
+                        gradient.addColorStop(1, '#1A2332');
+                        break;
+                    case 'snowy':
+                        gradient.addColorStop(0, '#E0E6ED');
+                        gradient.addColorStop(0.5, '#B8C7D1');
+                        gradient.addColorStop(1, '#8FA6B9');
+                        break;
+                    case 'stormy':
+                        gradient.addColorStop(0, '#2C3E50');
+                        gradient.addColorStop(0.5, '#34495E');
+                        gradient.addColorStop(1, '#1B2631');
+                        break;
+                }
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height * 0.4);
+            }
+
+            drawSunMoon() {
+                const centerX = this.canvas.width * 0.8;
+                const centerY = this.canvas.height * 0.2;
+                const time = Date.now() * 0.0005;
+                
+                this.ctx.save();
+                this.ctx.translate(centerX + Math.sin(time) * 20, centerY + Math.cos(time) * 10);
+                
+                if(this.weather === 'sunny') {
+                    const sunGradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
+                    sunGradient.addColorStop(0, '#FFD700');
+                    sunGradient.addColorStop(0.5, '#FFA500');
+                    sunGradient.addColorStop(1, 'rgba(255, 165, 0, 0)');
+                    this.ctx.fillStyle = sunGradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, 40, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                this.ctx.restore();
+            }
+
+            drawTower() {
+                this.ctx.save();
+                this.ctx.translate(this.canvas.width * 0.15, this.canvas.height * 0.3 + this.towerSway);
+                
+                // Tower base
+                this.ctx.fillStyle = '#8B4513';
+                this.ctx.fillRect(-25, this.canvas.height * 0.35, 50, 200);
+                
+                // Tower body
+                const towerGradient = this.ctx.createLinearGradient(0, 0, 0, 200);
+                towerGradient.addColorStop(0, '#D2691E');
+                towerGradient.addColorStop(1, '#8B4513');
+                this.ctx.fillStyle = towerGradient;
+                this.ctx.fillRect(-20, this.canvas.height * 0.35 - 150, 40, 350);
+                
+                // Tower top light
+                this.ctx.shadowColor = '#FFFF00';
+                this.ctx.shadowBlur = 30;
+                this.ctx.fillStyle = `rgba(255, 255, 0, ${0.8 + Math.sin(Date.now() * 0.01) * 0.2})`;
+                this.ctx.beginPath();
+                this.ctx.arc(0, this.canvas.height * 0.35 - 180, 15, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.shadowBlur = 0;
+                
+                this.ctx.restore();
+            }
+
+            drawWaves() {
+                const points = 400;
+                const waterGradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                
+                switch(this.weather) {
+                    case 'sunny':
+                        waterGradient.addColorStop(0, 'rgba(13, 71, 161, 0.9)');
+                        waterGradient.addColorStop(0.5, 'rgba(25, 25, 112, 0.95)');
+                        waterGradient.addColorStop(1, 'rgba(0, 0, 50, 1)');
+                        break;
+                    case 'foggy':
+                        waterGradient.addColorStop(0, 'rgba(169, 169, 169, 0.8)');
+                        waterGradient.addColorStop(0.5, 'rgba(128, 128, 128, 0.9)');
+                        waterGradient.addColorStop(1, 'rgba(64, 64, 64, 1)');
+                        break;
+                    default:
+                        waterGradient.addColorStop(0, 'rgba(30, 58, 138, 0.9)');
+                        waterGradient.addColorStop(0.5, 'rgba(15, 29, 69, 0.95)');
+                        waterGradient.addColorStop(1, 'rgba(0, 0, 25, 1)');
+                }
+                
+                for(let i = 0; i < points; i++) {
+                    const x = (i / points) * this.canvas.width;
+                    const baseY = this.getWaveHeight(x);
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, baseY);
+                    
+                    // Draw wave surface with highlight
+                    this.ctx.lineTo(
+                        x,
+                        baseY - 20 * this.waveHeight * 0.5
+                    );
+                    
+                    this.ctx.strokeStyle = waterGradient;
+                    this.ctx.lineWidth = 3;
+                    this.ctx.stroke();
+                }
+            }
+
+            drawFoam() {
+                this.foam.forEach(p => {
+                    const alpha = p.life;
+                    this.ctx.save();
+                    this.ctx.globalAlpha = alpha;
+                    
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+                    this.ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.restore();
+                });
+            }
+
+            drawWeatherEffects() {
+                // Rain
+                if(this.weather === 'rainy' || this.weather === 'stormy') {
+                    for(let i = 0; i < 100; i++) {
+                        const x = (i * 37) % this.canvas.width;
+                        const y = (Date.now() * 0.3 + i * 13) % this.canvas.height;
+                        this.ctx.strokeStyle = `rgba(174, 194, 224, ${0.6 + Math.random() * 0.4})`;
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, y);
+                        this.ctx.lineTo(x + 5, y + 8);
+                        this.ctx.stroke();
+                    }
+                }
+                
+                // Snow
+                if(this.weather === 'snowy') {
+                    for(let i = 0; i < 80; i++) {
+                        const x = (i * 53 + Date.now() * 0.1) % this.canvas.width;
+                        const y = (Date.now() * 0.2 + i * 17) % this.canvas.height;
+                        const size = 2 + Math.sin(Date.now() * 0.005 + i) * 1;
+                        
+                        this.ctx.save();
+                        this.ctx.globalAlpha = 0.8;
+                        this.ctx.fillStyle = '#FFFFFF';
+                        this.ctx.shadowColor = '#E0E6ED';
+                        this.ctx.shadowBlur = 5;
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.restore();
+                    }
+                }
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.drawSky();
+                this.drawSunMoon();
+                this.drawTower();
+                this.drawWaves();
+                this.drawFoam();
+                this.drawWeatherEffects();
+                
+                this.update();
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Start simulation
+        window.addEventListener('load', () => {
+            new SeaSimulation();
+        });
+    </script>
+</body>
 </html>
