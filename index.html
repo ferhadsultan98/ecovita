@@ -3,228 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Grid Room - Responsive</title>
+    <title>Ultra Realistic AR Grid</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #000;
-            font-family: Arial, sans-serif;
+            background-color: #000; /* AR başlamadan önceki renk */
+            font-family: sans-serif;
         }
-        canvas {
-            display: block;
-        }
-        #overlay {
+        /* AR Başlatma Butonunun Stili (Three.js otomatik ekleyecek ama biz özelleştirebiliriz) */
+        #ar-button-container {
             position: absolute;
-            top: 0;
-            left: 0;
+            bottom: 20px;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
             text-align: center;
+            z-index: 100;
+            pointer-events: none; /* Tıklamalar alttaki butona geçsin */
         }
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            background: #ffffff;
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        p {
-            max-width: 80%;
-            line-height: 1.5;
+        /* Bilgilendirme metni */
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 5px;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <h2>3D Grid Odası</h2>
-        <p>Telefonda etrafa bakmak için cihazı çevirin.<br>Bilgisayarda mouse ile sürükleyin.</p>
-        <p style="font-size:12px; color:#aaa;">(iOS cihazlarda sensör izni gereklidir)</p>
-        <button id="startButton">BAŞLAT / İZİN VER</button>
-    </div>
+    <div id="info">AR Modu: Etrafında 3D bir ızgara belirecek.</div>
+    <div id="ar-button-container"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.157.0/build/three.module.js';
+        import { ARButton } from 'https://unpkg.com/three@0.157.0/examples/jsm/webxr/ARButton.js';
 
-    <script>
-        // --- 1. Temel Kurulumlar ---
-        const scene = new THREE.Scene();
-        // Arka plan rengi (Resimdeki gibi siyah)
-        scene.background = new THREE.Color(0x000000); 
+        let camera, scene, renderer;
+        let gridObject;
 
-        // Kamera ayarları
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        // Kamerayı kutunun tam ortasına koyuyoruz
-        camera.position.set(0, 0, 0);
+        init();
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+        function init() {
+            const container = document.createElement('div');
+            document.body.appendChild(container);
 
-        // --- 2. Odayı (Grid Box) Oluşturma ---
-        // Resimdeki gibi dikdörtgenler prizması şeklinde bir kutu
-        // Genişlik: 40, Yükseklik: 20, Derinlik: 60
-        // Segmentler: Izgara sıklığını belirler (Resimdeki gibi kare kare olması için)
-        const geometry = new THREE.BoxGeometry(40, 20, 60, 20, 10, 30);
-        
-        // Materyal: Sadece çizgiler (Wireframe), Beyaz renk
-        const material = new THREE.MeshBasicMaterial({ 
-            color: 0xffffff, 
-            wireframe: true,
-            transparent: true,
-            opacity: 0.8 
-        });
+            // 1. SAHNE (SCENE)
+            scene = new THREE.Scene();
+            // ÖNEMLİ: Arka planı 'null' yapıyoruz ki kamera görüntüsü arkada gözüksün.
+            scene.background = null;
 
-        const room = new THREE.Mesh(geometry, material);
-        
-        // Kutunun normal yüzeyleri dışa bakar, biz içinde olacağımız için materyali "çift taraflı" render ediyoruz
-        material.side = THREE.BackSide; 
-        
-        scene.add(room);
+            // 2. KAMERA
+            // WebXR'da kamera pozisyonu otomatik yönetilir.
+            // FOV (70) ve diğer ayarlar başlangıç için standarttır.
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
-        // --- 3. Kontrol Mantığı (Mouse + Gyroscope) ---
-        
-        let isMobile = false;
-        let lon = 0, lat = 0;
-        let phi = 0, theta = 0;
-        let startX = 0, startY = 0, startLon = 0, startLat = 0;
-        let isUserInteracting = false;
+            // 3. IŞIKLANDIRMA (Wireframe için şart değil ama "realistic" his için hafif bir ortam ışığı ekleyelim)
+            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+            light.position.set(0.5, 1, 0.25);
+            scene.add(light);
 
-        // Mouse / Dokunmatik Kontrolleri
-        document.addEventListener('mousedown', onPointerStart, false);
-        document.addEventListener('mousemove', onPointerMove, false);
-        document.addEventListener('mouseup', onPointerUp, false);
-        
-        document.addEventListener('touchstart', onPointerStart, {passive: false});
-        document.addEventListener('touchmove', onPointerMove, {passive: false});
-        document.addEventListener('touchend', onPointerUp, false);
+            // 4. RENDERER (Görüntü Motoru)
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // alpha: true önemli (şeffaflık için)
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // WebXR'ı aktif ediyoruz. Bu sihirli satır.
+            renderer.xr.enabled = true; 
+            container.appendChild(renderer.domElement);
 
-        function onPointerStart(event) {
-            isUserInteracting = true;
-            const clientX = event.clientX || event.touches[0].clientX;
-            const clientY = event.clientY || event.touches[0].clientY;
-            startX = clientX;
-            startY = clientY;
-            startLon = lon;
-            startLat = lat;
-        }
-
-        function onPointerMove(event) {
-            if (!isUserInteracting) return;
-            const clientX = event.clientX || event.touches[0].clientX;
-            const clientY = event.clientY || event.touches[0].clientY;
+            // 5. AR BUTONU EKLEME
+            // Three.js'in hazır AR butonu. Tıklandığında kamera izni ister ve AR moduna geçer.
+            const arButton = ARButton.createButton(renderer, { 
+                requiredFeatures: ['hit-test'], // Gelişmiş yüzey algılama için (isteğe bağlı)
+                optionalFeatures: ['dom-overlay'], 
+                domOverlay: { root: document.body } 
+            });
+            document.getElementById('ar-button-container').appendChild(arButton);
             
-            // Hassasiyet ayarı (0.1)
-            lon = (startX - clientX) * 0.1 + startLon;
-            lat = (clientY - startY) * 0.1 + startLat;
+
+            // --- 3D IZGARA OBJESİNİ OLUŞTURMA ---
+            // Daha gerçekçi olması için devasa bir oda yerine,
+            // odanın ortasında duran, sanki fiziksel bir nesneymiş gibi görünen bir küp yapalım.
+            
+            // Boyut: 1 metre x 1 metre x 1 metre
+            const geometry = new THREE.BoxGeometry(1, 1, 1, 10, 10, 10); // Segmentleri artırdık, daha sıkı ızgara.
+            
+            // Materyal: Parlak beyaz çizgiler
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            gridObject = new THREE.Mesh(geometry, material);
+
+            // POZİSYONLAMA:
+            // WebXR başladığında kamera (0,0,0) noktasındadır.
+            // Objeyi Z ekseninde -1.5 metre (yani karşımıza, 1.5 metre uzağa) koyuyoruz.
+            gridObject.position.set(0, 0, -1.5);
+            
+            // Hafif bir açı verelim ki daha havalı dursun
+            gridObject.rotation.x = THREE.MathUtils.degToRad(15);
+            gridObject.rotation.y = THREE.MathUtils.degToRad(45);
+
+            scene.add(gridObject);
+
+            // PENCERE BOYUTU DEĞİŞİRSE
+            window.addEventListener('resize', onWindowResize);
+
+            // ANIMASYON DÖNGÜSÜNÜ BAŞLAT
+            // WebXR'da 'requestAnimationFrame' yerine bu kullanılır.
+            renderer.setAnimationLoop(render);
         }
 
-        function onPointerUp() {
-            isUserInteracting = false;
-        }
-
-        // --- 4. Jiroskop (Telefonu Çevirme) Kontrolü ---
-        // DeviceOrientation kontrolü için basit bir mantık
-        let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
-        let initialOffset = null;
-
-        function handleOrientation(event) {
-            if(!initialOffset) initialOffset = event.alpha;
-            deviceOrientation = event;
-            isMobile = true;
-        }
-
-        // --- 5. Başlat Butonu ve İzin İşlemleri (iOS 13+ için gerekli) ---
-        const btn = document.getElementById("startButton");
-        const overlay = document.getElementById("overlay");
-
-        btn.addEventListener("click", function() {
-            // Overlay'i kaldır
-            overlay.style.display = "none";
-
-            // iOS 13+ İzin İsteği
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            window.addEventListener('deviceorientation', handleOrientation);
-                        } else {
-                            alert("Sensör izni reddedildi. Dokunarak kontrol edebilirsiniz.");
-                        }
-                    })
-                    .catch(console.error);
-            } else {
-                // Android veya eski cihazlar (İzin gerekmez)
-                window.addEventListener('deviceorientation', handleOrientation);
-            }
-        });
-
-        // --- 6. Responsive Ayarı ---
-        window.addEventListener('resize', () => {
+        function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        }
 
-        // --- 7. Animasyon Döngüsü ---
-        function animate() {
-            requestAnimationFrame(animate);
-
-            if (isMobile && deviceOrientation.beta !== null) {
-                // --- Telefon Modu (Gyro) ---
-                // Telefon hareketlerini Euler açılarına çevir
-                // Bu kısım temel bir oryantasyon sağlar
-                
-                // Basit bir yaklaşım: Beta (x ekseni), Gamma (y ekseni)
-                // Daha pürüzsüz bir deneyim için math utils kullanımı:
-                
-                const alpha = deviceOrientation.alpha ? THREE.Math.degToRad(deviceOrientation.alpha) : 0; // Z
-                const beta = deviceOrientation.beta ? THREE.Math.degToRad(deviceOrientation.beta) : 0; // X
-                const gamma = deviceOrientation.gamma ? THREE.Math.degToRad(deviceOrientation.gamma) : 0; // Y
-                
-                // Jiroskop verisini kameraya uygula (Basitleştirilmiş versiyon)
-                // Not: Tam 360 VR deneyimi için "DeviceOrientationControls" kütüphanesi önerilir ama
-                // tek dosya olması için manuel hesaplama veya dokunmatik öncelik veriyoruz.
-                // Burada hibrit bir yapı kullanıyoruz: Eğer dokunmuyorsak sensör hafifçe kamerayı yönlendirir.
-                
-                if (!isUserInteracting) {
-                   // Telefonu çevirdiğinde hafif kayma efekti (Tam VR değil, "Paralaks" hissi)
-                   // Tam VR kütüphanesi harici dosya gerektireceği için bu yöntem "Look Around" hissi verir.
-                   lon = -deviceOrientation.alpha;
-                   lat = deviceOrientation.beta - 90;
-                }
-            }
-
-            // Açı kısıtlamaları (Yukarı/Aşağı sonsuz dönmesin)
-            lat = Math.max(-85, Math.min(85, lat));
-
-            // Koordinat hesaplaması
-            phi = THREE.Math.degToRad(90 - lat);
-            theta = THREE.Math.degToRad(lon);
-
-            const target = new THREE.Vector3();
-            target.x = 500 * Math.sin(phi) * Math.cos(theta);
-            target.y = 500 * Math.cos(phi);
-            target.z = 500 * Math.sin(phi) * Math.sin(theta);
-
-            camera.lookAt(target);
+        // HER KAREDE YAPILACAKLAR
+        function render() {
+            // İstersen objeyi yavaşça kendi etrafında döndürebilirsin:
+            // if (gridObject) {
+            //     gridObject.rotation.y += 0.005;
+            // }
 
             renderer.render(scene, camera);
         }
-
-        animate();
-
     </script>
 </body>
 </html>
