@@ -3,446 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Gerçekçi Deniz & Hava Simülasyonu</title>
+    <title>Web City - Sürüş Simülasyonu</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        canvas { display: block; width: 100vw; height: 100vh; }
-        
-        /* UI Arayüzü - Mobil Uyumlu */
-        #ui-container {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 600px;
-            background: rgba(15, 23, 42, 0.85); /* Glassmorphism koyu */
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 20px;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 10;
-            transition: opacity 0.3s;
-        }
-
-        .control-group {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 14px;
-        }
-
-        .control-group label { min-width: 100px; font-weight: 600; color: #94a3b8; }
-        
-        /* Slider Stili */
-        input[type=range] {
-            flex-grow: 1;
-            margin-left: 10px;
-            accent-color: #38bdf8;
-            height: 6px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            background: #38bdf8;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-        }
-
-        /* Buton Grubu */
-        .weather-buttons {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 5px;
-        }
-
-        .weather-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            padding: 10px 5px;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-            text-align: center;
-        }
-
-        .weather-btn:active, .weather-btn.active {
-            background: #38bdf8;
-            color: #0f172a;
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-        }
-
-        /* Gizle/Göster Butonu */
-        #toggle-ui {
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; }
+        #info {
             position: absolute;
             top: 20px;
-            right: 20px;
-            background: rgba(15, 23, 42, 0.8);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 10px;
+            left: 20px;
+            color: #0ff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #0ff;
+            pointer-events: none;
+            user-select: none;
+            z-index: 100;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 2px; }
+        p { margin: 5px 0; font-size: 14px; color: #ccc; }
+        .key { color: #fff; font-weight: bold; background: #333; padding: 2px 6px; border-radius: 4px; }
+        
+        /* Mobil Kontroller */
+        #mobile-controls {
+            display: none; /* Masaüstünde gizli, mobilde JS ile açılabilir istenirse */
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        
+        #action-btn {
+            position: absolute;
+            right: 30px;
+            bottom: 150px;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 255, 255, 0.5);
+            border: 2px solid #0ff;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            z-index: 20;
+            color: white;
+            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            z-index: 99;
+            display: none; /* Sadece mobilde veya etkileşimde gösterilebilir */
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
 </head>
 <body>
 
-    <button id="toggle-ui">⚙️</button>
-
-    <div id="ui-container">
-        <div class="weather-buttons">
-            <button class="weather-btn active" onclick="setWeather('sunny')">☀️ Güneş</button>
-            <button class="weather-btn" onclick="setWeather('night')">🌙 Gece</button>
-            <button class="weather-btn" onclick="setWeather('rain')">🌧️ Yağmur</button>
-            <button class="weather-btn" onclick="setWeather('snow')">❄️ Kar</button>
-            <button class="weather-btn" onclick="setWeather('fog')">🌫️ Sis</button>
-        </div>
-
-        <div class="control-group">
-            <label>Dalga Hızı</label>
-            <input type="range" min="0" max="2" step="0.1" value="0.5" oninput="updateParams('speed', this.value)">
-        </div>
-        <div class="control-group">
-            <label>Dalga Boyu</label>
-            <input type="range" min="0" max="10" step="0.5" value="3" oninput="updateParams('height', this.value)">
-        </div>
-        <div class="control-group">
-            <label>Rüzgar/Türbülans</label>
-            <input type="range" min="0" max="5" step="0.1" value="1" oninput="updateParams('wind', this.value)">
-        </div>
+    <div id="info">
+        <h1>Neon City Drive</h1>
+        <p><span class="key">W, A, S, D</span> : Hareket Et / Sür</p>
+        <p><span class="key">F</span> : Arabaya Bin / İn</p>
+        <p><span class="key">SHIFT</span> : Koş / Nitro</p>
+        <p>Durum: <span id="status-text" style="color: yellow;">Yürüyor</span></p>
     </div>
+
+    <div id="action-btn">F</div>
 
     <script>
         // --- TEMEL KURULUM ---
         const scene = new THREE.Scene();
-        // Gerçekçi sis (başlangıçta hafif mavi)
-        scene.fog = new THREE.FogExp2(0xaaccff, 0.002);
-        
-        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.set(0, 30, 100);
-        camera.lookAt(0, 0, 0);
+        scene.background = new THREE.Color(0x050510);
+        scene.fog = new THREE.FogExp2(0x050510, 0.015);
 
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // --- IŞIKLANDIRMA (Gerçekçilik için) ---
-        const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Genel aydınlık
+        // --- IŞIKLANDIRMA ---
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Loş ortam
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        dirLight.position.set(-100, 100, -100);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
+        const moonLight = new THREE.DirectionalLight(0xaaccff, 0.5);
+        moonLight.position.set(50, 100, 50);
+        moonLight.castShadow = true;
+        moonLight.shadow.mapSize.width = 2048;
+        moonLight.shadow.mapSize.height = 2048;
+        scene.add(moonLight);
 
-        // --- OKYANUS YAPISI (Shader Material) ---
-        // Özel shader yazarak dalgaların hem rengini hem hareketini simüle ediyoruz.
+        // --- ŞEHİR OLUŞTURMA (Prosedürel) ---
+        // Zemin
+        const groundGeo = new THREE.PlaneGeometry(2000, 2000);
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.6 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // Binalar
+        const buildingGeo = new THREE.BoxGeometry(1, 1, 1);
+        // Binalar için rastgele renkler yerine neon şehir tarzı
+        const buildingMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.2 });
         
-        const waterVertexShader = `
-            uniform float uTime;
-            uniform float uSpeed;
-            uniform float uHeight;
-            uniform float uWind;
-            
-            varying vec2 vUv;
-            varying float vElevation;
+        const cityGroup = new THREE.Group();
+        scene.add(cityGroup);
 
-            // Basit gürültü fonksiyonu (Noise)
-            vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
-            float snoise(vec2 v){
-                const vec4 C = vec4(0.211324865405187, 0.366025403784439,
-                        -0.577350269189626, 0.024390243902439);
-                vec2 i  = floor(v + dot(v, C.yy) );
-                vec2 x0 = v -   i + dot(i, C.xx);
-                vec2 i1;
-                i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-                vec4 x12 = x0.xyxy + C.xxzz;
-                x12.xy -= i1;
-                i = mod(i, 289.0);
-                vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-                + i.x + vec3(0.0, i1.x, 1.0 ));
-                vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-                m = m*m ;
-                m = m*m ;
-                vec3 x = 2.0 * fract(p * C.www) - 1.0;
-                vec3 h = abs(x) - 0.5;
-                vec3 ox = floor(x + 0.5);
-                vec3 a0 = x - ox;
-                m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-                vec3 g;
-                g.x  = a0.x  * x0.x  + h.x  * x0.y;
-                g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-                return 130.0 * dot(m, g);
-            }
-
-            void main() {
-                vUv = uv;
+        const buildings = [];
+        
+        function createCity() {
+            for(let i=0; i<300; i++) {
+                const h = Math.random() * 20 + 5;
+                const w = Math.random() * 5 + 3;
+                const d = Math.random() * 5 + 3;
                 
-                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                const mesh = new THREE.Mesh(buildingGeo, buildingMat);
+                mesh.position.x = (Math.random() - 0.5) * 400;
+                mesh.position.z = (Math.random() - 0.5) * 400;
                 
-                // Dalga matematiği: Sinüs dalgaları + Gürültü (Noise)
-                float elevation = sin(modelPosition.x * 0.05 + uTime * uSpeed) * uHeight;
-                elevation += sin(modelPosition.z * 0.03 + uTime * uSpeed * 0.8) * uHeight;
+                // Yolu temiz tut (Merkezde bina olmasın)
+                if(Math.abs(mesh.position.x) < 20) mesh.position.x += 30;
+
+                mesh.position.y = h / 2;
+                mesh.scale.set(w, h, d);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
                 
-                // Rüzgar etkisi (küçük detaylar)
-                elevation += snoise(modelPosition.xz * 0.1 * uWind + uTime * uSpeed) * (uHeight * 0.3);
-
-                modelPosition.y += elevation;
-                vElevation = elevation;
-
-                vec4 viewPosition = viewMatrix * modelPosition;
-                vec4 projectedPosition = projectionMatrix * viewPosition;
-                gl_Position = projectedPosition;
-            }
-        `;
-
-        const waterFragmentShader = `
-            uniform vec3 uDepthColor;
-            uniform vec3 uSurfaceColor;
-            uniform float uColorOffset;
-            uniform float uColorMultiplier;
-
-            varying float vElevation;
-
-            void main() {
-                float mixStrength = (vElevation + uColorOffset) * uColorMultiplier;
-                // Derinlik ve yüzey rengini karıştırarak gerçekçi tonlama
-                vec3 color = mix(uDepthColor, uSurfaceColor, mixStrength);
-                gl_FragColor = vec4(color, 0.9);
-            }
-        `;
-
-        const waterGeometry = new THREE.PlaneGeometry(500, 500, 256, 256);
-        const waterMaterial = new THREE.ShaderMaterial({
-            vertexShader: waterVertexShader,
-            fragmentShader: waterFragmentShader,
-            uniforms: {
-                uTime: { value: 0 },
-                uSpeed: { value: 0.5 },
-                uHeight: { value: 3.0 },
-                uWind: { value: 1.0 },
-                uDepthColor: { value: new THREE.Color('#186691') },
-                uSurfaceColor: { value: new THREE.Color('#9bd8ff') },
-                uColorOffset: { value: 2.0 },
-                uColorMultiplier: { value: 0.15 }
-            },
-            transparent: true,
-            side: THREE.DoubleSide,
-            wireframe: false
-        });
-
-        const water = new THREE.Mesh(waterGeometry, waterMaterial);
-        water.rotation.x = -Math.PI / 2;
-        scene.add(water);
-
-        // --- PARÇACIK SİSTEMİ (YAĞMUR & KAR) ---
-        let particles, particleGeo, particleMat;
-        let particleSystemActive = false;
-        let particleType = 'none'; // 'rain', 'snow'
-
-        function createParticles(type) {
-            if(particles) scene.remove(particles);
-            
-            const count = type === 'rain' ? 15000 : 10000;
-            particleGeo = new THREE.BufferGeometry();
-            const positions = new Float32Array(count * 3);
-            const velocities = [];
-
-            for(let i=0; i<count*3; i+=3) {
-                positions[i] = (Math.random() - 0.5) * 400; // x
-                positions[i+1] = Math.random() * 200;       // y
-                positions[i+2] = (Math.random() - 0.5) * 400; // z
-                
-                if(type === 'rain') velocities.push({y: -(Math.random() * 2 + 2), x: (Math.random()-0.5)*0.2});
-                else velocities.push({y: -(Math.random() * 0.5 + 0.2), x: (Math.random()-0.5)*1});
-            }
-
-            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            // Texture yerine kod ile basit materyal
-            particleMat = new THREE.PointsMaterial({
-                color: type === 'rain' ? 0xaaaaaa : 0xffffff,
-                size: type === 'rain' ? 0.8 : 1.5,
-                transparent: true,
-                opacity: 0.8
-            });
-
-            particles = new THREE.Points(particleGeo, particleMat);
-            particles.userData = { velocities: velocities, type: type };
-            scene.add(particles);
-            particleSystemActive = true;
-            particleType = type;
-        }
-
-        function removeParticles() {
-            if(particles) {
-                scene.remove(particles);
-                particleSystemActive = false;
-                particleType = 'none';
-            }
-        }
-
-        // --- HAVA DURUMU KONTROLÜ ---
-        function setWeather(type) {
-            // Buton stillerini güncelle
-            document.querySelectorAll('.weather-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Varsayılan değerler
-            let fogColor = 0xaaccff;
-            let fogDensity = 0.002;
-            let skyColor = 0x87CEEB;
-            let lightIntensity = 1.2;
-            
-            removeParticles();
-
-            switch(type) {
-                case 'sunny':
-                    skyColor = 0x87CEEB; // Açık mavi
-                    fogColor = 0xaaccff;
-                    fogDensity = 0.002;
-                    waterMaterial.uniforms.uDepthColor.value.set('#186691');
-                    waterMaterial.uniforms.uSurfaceColor.value.set('#9bd8ff');
-                    lightIntensity = 1.5;
-                    break;
-                case 'night':
-                    skyColor = 0x050510; // Koyu lacivert
-                    fogColor = 0x050510;
-                    fogDensity = 0.015;
-                    waterMaterial.uniforms.uDepthColor.value.set('#000000');
-                    waterMaterial.uniforms.uSurfaceColor.value.set('#0f2030');
-                    lightIntensity = 0.1;
-                    break;
-                case 'fog':
-                    skyColor = 0xcccccc; // Gri
-                    fogColor = 0xcccccc;
-                    fogDensity = 0.04; // Yoğun sis
-                    waterMaterial.uniforms.uDepthColor.value.set('#445566');
-                    waterMaterial.uniforms.uSurfaceColor.value.set('#8899aa');
-                    lightIntensity = 0.8;
-                    break;
-                case 'rain':
-                    skyColor = 0x222222;
-                    fogColor = 0x222222;
-                    fogDensity = 0.02;
-                    waterMaterial.uniforms.uDepthColor.value.set('#111111');
-                    waterMaterial.uniforms.uSurfaceColor.value.set('#334455');
-                    lightIntensity = 0.5;
-                    createParticles('rain');
-                    break;
-                case 'snow':
-                    skyColor = 0x8899aa;
-                    fogColor = 0x99aabb;
-                    fogDensity = 0.025;
-                    waterMaterial.uniforms.uDepthColor.value.set('#223344');
-                    waterMaterial.uniforms.uSurfaceColor.value.set('#ddeeff');
-                    lightIntensity = 0.9;
-                    createParticles('snow');
-                    break;
-            }
-
-            // Sahne renklerini yumuşak geçişle değil anlık değiştiriyoruz (performans için)
-            renderer.setClearColor(skyColor);
-            scene.fog.color.setHex(fogColor);
-            scene.fog.density = fogDensity;
-            dirLight.intensity = lightIntensity;
-        }
-
-        // --- PARAMETRE KONTROLÜ (UI) ---
-        window.updateParams = function(param, val) {
-            val = parseFloat(val);
-            if(param === 'speed') waterMaterial.uniforms.uSpeed.value = val;
-            if(param === 'height') waterMaterial.uniforms.uHeight.value = val;
-            if(param === 'wind') waterMaterial.uniforms.uWind.value = val;
-        }
-
-        // --- UI GİZLE/GÖSTER ---
-        const uiContainer = document.getElementById('ui-container');
-        document.getElementById('toggle-ui').addEventListener('click', () => {
-            if(uiContainer.style.opacity === '0') {
-                uiContainer.style.opacity = '1';
-                uiContainer.style.pointerEvents = 'auto';
-            } else {
-                uiContainer.style.opacity = '0';
-                uiContainer.style.pointerEvents = 'none';
-            }
-        });
-
-        // --- ANİMASYON DÖNGÜSÜ ---
-        const clock = new THREE.Clock();
-
-        function animate() {
-            const elapsedTime = clock.getElapsedTime();
-
-            // Suyu hareket ettir
-            waterMaterial.uniforms.uTime.value = elapsedTime;
-
-            // Parçacıkları hareket ettir (Yağmur/Kar)
-            if(particleSystemActive && particles) {
-                const positions = particles.geometry.attributes.position.array;
-                const velocities = particles.userData.velocities;
-
-                for(let i=0; i < positions.length / 3; i++) {
-                    const idx = i * 3;
-                    // Y ekseninde düşüş
-                    positions[idx+1] += velocities[i].y;
-                    
-                    // X ekseninde rüzgar etkisi (hafif salınım)
-                    if(particleType === 'snow') {
-                         positions[idx] += Math.sin(elapsedTime + positions[idx]) * 0.1;
-                    }
-
-                    // Yere çarparsa (veya ekran dışına çıkarsa) yukarı taşı
-                    if(positions[idx+1] < -10) {
-                        positions[idx+1] = 200;
-                        positions[idx] = (Math.random() - 0.5) * 400; // Rastgele yeni X
-                        positions[idx+2] = (Math.random() - 0.5) * 400; // Rastgele yeni Z
-                    }
+                // Neon pencereler (Basit bir numara)
+                if(Math.random() > 0.7) {
+                    const windowLight = new THREE.PointLight(0xff00ff, 1, 20);
+                    windowLight.position.set(mesh.position.x, Math.random() * h, mesh.position.z + d/2 + 0.5);
+                    cityGroup.add(windowLight);
                 }
-                particles.geometry.attributes.position.needsUpdate = true;
+
+                cityGroup.add(mesh);
+                buildings.push(mesh); // Çarpışma kontrolü için sakla
+            }
+        }
+        createCity();
+
+        // --- OYUNCU (İNSAN) ---
+        const playerGeo = new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
+        const playerMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc });
+        const player = new THREE.Mesh(playerGeo, playerMat);
+        player.position.set(5, 1.25, 0);
+        player.castShadow = true;
+        scene.add(player);
+
+        // --- ARABA TASARIMI (Low Poly Spor Araba) ---
+        const carGroup = new THREE.Group();
+        
+        // Gövde
+        const chassisGeo = new THREE.BoxGeometry(2, 0.8, 4.5);
+        const chassisMat = new THREE.MeshStandardMaterial({ color: 0xff0000, metalness: 0.7, roughness: 0.2 });
+        const chassis = new THREE.Mesh(chassisGeo, chassisMat);
+        chassis.position.y = 0.8;
+        chassis.castShadow = true;
+        carGroup.add(chassis);
+
+        // Üst Kabin
+        const cabinGeo = new THREE.BoxGeometry(1.8, 0.6, 2.5);
+        const cabinMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1 });
+        const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+        cabin.position.y = 1.5;
+        cabin.position.z = -0.2;
+        carGroup.add(cabin);
+
+        // Farlar
+        const headLightL = new THREE.SpotLight(0xffffff, 5, 50, 0.5, 0.5, 1);
+        headLightL.position.set(-0.6, 0.8, 2.2);
+        headLightL.target.position.set(-0.6, 0, 10);
+        carGroup.add(headLightL);
+        carGroup.add(headLightL.target);
+
+        const headLightR = new THREE.SpotLight(0xffffff, 5, 50, 0.5, 0.5, 1);
+        headLightR.position.set(0.6, 0.8, 2.2);
+        headLightR.target.position.set(0.6, 0, 10);
+        carGroup.add(headLightR);
+        carGroup.add(headLightR.target);
+
+        // Tekerlekler
+        const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 16);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        
+        function createWheel(x, z) {
+            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(x, 0.4, z);
+            wheel.castShadow = true;
+            carGroup.add(wheel);
+            return wheel;
+        }
+        
+        const wheels = [
+            createWheel(-1.1, 1.5), // Ön Sol
+            createWheel(1.1, 1.5),  // Ön Sağ
+            createWheel(-1.1, -1.5), // Arka Sol
+            createWheel(1.1, -1.5)   // Arka Sağ
+        ];
+
+        carGroup.position.set(0, 0, 10);
+        scene.add(carGroup);
+
+        // --- OYUN MANTIĞI & DEĞİŞKENLER ---
+        let mode = 'walking'; // 'walking' veya 'driving'
+        const keys = { w: false, a: false, s: false, d: false, shift: false };
+        
+        // Karakter Değişkenleri
+        let playerSpeed = 0.15;
+        let playerRotation = 0;
+
+        // Araba Değişkenleri
+        let speed = 0;
+        let steering = 0;
+        let maxSpeed = 1.5;
+        let acceleration = 0.02;
+        let friction = 0.98;
+
+        // Kamera Takip Hedefi
+        const cameraOffset = new THREE.Vector3(0, 5, -8); // Arkadan takip
+        let currentCameraPos = new THREE.Vector3();
+
+        // --- KONTROLLER ---
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (keys.hasOwnProperty(key)) keys[key] = true;
+            if (key === 'shift') keys.shift = true;
+            
+            // Arabaya Binme / İnme
+            if (key === 'f') toggleVehicle();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (keys.hasOwnProperty(key)) keys[key] = false;
+            if (key === 'shift') keys.shift = false;
+        });
+
+        // Mobil Buton Desteği (Basit)
+        const actionBtn = document.getElementById('action-btn');
+        actionBtn.style.display = 'flex'; // Her zaman göster (test için)
+        actionBtn.addEventListener('click', toggleVehicle);
+
+        function toggleVehicle() {
+            const dist = player.position.distanceTo(carGroup.position);
+            
+            if (mode === 'walking') {
+                if (dist < 5) {
+                    mode = 'driving';
+                    player.visible = false; // Karakteri gizle
+                    document.getElementById('status-text').innerText = "Sürüyor";
+                    document.getElementById('status-text').style.color = "cyan";
+                }
+            } else {
+                mode = 'walking';
+                // Karakteri arabanın yanına koy
+                player.position.copy(carGroup.position);
+                player.position.x += 2.5; 
+                player.visible = true;
+                speed = 0; // Arabayı durdur (isteğe bağlı)
+                document.getElementById('status-text').innerText = "Yürüyor";
+                document.getElementById('status-text').style.color = "yellow";
+            }
+        }
+
+        // --- ÇARPIŞMA KONTROLÜ (Basit) ---
+        function checkCollision(position) {
+            // Şehir sınırları
+            if(Math.abs(position.x) > 1000 || Math.abs(position.z) > 1000) return true;
+            
+            // Basit bina çarpışması (Box vs Point)
+            // Performans için sadece yakındaki binaları kontrol etmek gerekir ama burada basit tutuyoruz
+            for (let b of buildings) {
+                const box = new THREE.Box3().setFromObject(b);
+                if (box.containsPoint(position)) return true;
+            }
+            return false;
+        }
+
+        // --- OYUN DÖNGÜSÜ ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // --- YÜRÜME MODU ---
+            if (mode === 'walking') {
+                const moveSpeed = keys.shift ? playerSpeed * 1.8 : playerSpeed;
+                const prevPos = player.position.clone();
+
+                if (keys.w) {
+                    player.position.x -= Math.sin(playerRotation) * moveSpeed;
+                    player.position.z -= Math.cos(playerRotation) * moveSpeed;
+                }
+                if (keys.s) {
+                    player.position.x += Math.sin(playerRotation) * moveSpeed;
+                    player.position.z += Math.cos(playerRotation) * moveSpeed;
+                }
+                if (keys.a) playerRotation += 0.05;
+                if (keys.d) playerRotation -= 0.05;
+
+                player.rotation.y = playerRotation;
+
+                // Çarpışma varsa geri al
+                if(checkCollision(player.position)) player.position.copy(prevPos);
+
+                // Kamerayı karaktere odakla
+                const targetPos = player.position.clone();
+                targetPos.y += 2;
+                targetPos.x += Math.sin(playerRotation) * 8; // Arkasında dur
+                targetPos.z += Math.cos(playerRotation) * 8;
+                
+                camera.position.lerp(targetPos, 0.1);
+                camera.lookAt(player.position);
             }
 
-            // Hafif kamera salınımı (teknedeymiş hissi)
-            camera.position.y += Math.sin(elapsedTime * 0.5) * 0.05;
+            // --- SÜRÜŞ MODU ---
+            else if (mode === 'driving') {
+                // Hızlanma / Yavaşlama
+                if (keys.w) speed += acceleration;
+                if (keys.s) speed -= acceleration;
+                
+                // Sürtünme
+                speed *= friction;
+
+                // Dönüş (Sadece hareket ederken)
+                if (Math.abs(speed) > 0.01) {
+                    if (keys.a) steering += 0.04;
+                    if (keys.d) steering -= 0.04;
+                }
+                
+                // Direksiyon toparlama
+                steering *= 0.9; 
+
+                // Tekerlek Görsel Dönüşü
+                wheels[0].rotation.y = steering; // Ön Sol
+                wheels[1].rotation.y = steering; // Ön Sağ
+
+                // Araba Hareketi
+                const prevPos = carGroup.position.clone();
+                carGroup.rotation.y += steering * speed; // Araba dönüşü
+                carGroup.position.x -= Math.sin(carGroup.rotation.y) * speed;
+                carGroup.position.z -= Math.cos(carGroup.rotation.y) * speed;
+
+                // Çarpışma Kontrolü
+                if(checkCollision(carGroup.position)) {
+                    carGroup.position.copy(prevPos);
+                    speed *= -0.5; // Geri tepme
+                }
+
+                // Kamera Takibi (Smooth)
+                const relativeOffset = new THREE.Vector3(0, 6, 12);
+                const cameraOffsetRotated = relativeOffset.applyMatrix4(carGroup.matrixWorld);
+                camera.position.lerp(cameraOffsetRotated, 0.1);
+                camera.lookAt(carGroup.position);
+            }
 
             renderer.render(scene, camera);
-            requestAnimationFrame(animate);
         }
 
-        // --- PENCERE BOYUTLANDIRMA (RESPONSIVE) ---
+        // Responsive Ayarı
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Başlangıç ayarları
-        renderer.setClearColor(0x87CEEB); // Gökyüzü rengi
         animate();
 
     </script>
