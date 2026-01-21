@@ -2,370 +2,361 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Web City - Sürüş Simülasyonu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GTA Web Simülasyonu - Düzeltilmiş Versiyon</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: sans-serif; user-select: none; -webkit-user-select: none; }
+        
+        /* Bilgilendirme Kutusu */
         #info {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #0ff;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #0ff;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
             pointer-events: none;
-            user-select: none;
-            z-index: 100;
+            font-size: 14px;
         }
-        h1 { margin: 0 0 10px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 2px; }
-        p { margin: 5px 0; font-size: 14px; color: #ccc; }
-        .key { color: #fff; font-weight: bold; background: #333; padding: 2px 6px; border-radius: 4px; }
-        
-        /* Mobil Kontroller */
-        #mobile-controls {
-            display: none; /* Masaüstünde gizli, mobilde JS ile açılabilir istenirse */
+
+        /* --- MOBİL KONTROLLER (Başlangıçta gizli) --- */
+        .mobile-ui {
+            display: none; /* JS ile mobildeysek açılacak */
             position: absolute;
-            bottom: 20px;
-            width: 100%;
-            justify-content: space-between;
-            padding: 0 20px;
-            box-sizing: border-box;
+            z-index: 99;
         }
-        
+
+        /* Joystick Alanı */
+        #joystick-zone {
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+        }
+
+        #joystick-knob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; /* Dokunmayı zone algılasın */
+        }
+
+        /* Aksiyon Butonu (Araca Bin/İn) */
         #action-btn {
-            position: absolute;
+            bottom: 40px;
             right: 30px;
-            bottom: 150px;
-            width: 60px;
-            height: 60px;
-            background: rgba(0, 255, 255, 0.5);
-            border: 2px solid #0ff;
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 255, 0, 0.5);
+            border: 2px solid white;
             border-radius: 50%;
             color: white;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 12px;
             cursor: pointer;
-            z-index: 99;
-            display: none; /* Sadece mobilde veya etkileşimde gösterilebilir */
         }
+        
+        #action-btn:active { background: rgba(0, 255, 0, 0.8); }
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
     <div id="info">
-        <h1>Neon City Drive</h1>
-        <p><span class="key">W, A, S, D</span> : Hareket Et / Sür</p>
-        <p><span class="key">F</span> : Arabaya Bin / İn</p>
-        <p><span class="key">SHIFT</span> : Koş / Nitro</p>
-        <p>Durum: <span id="status-text" style="color: yellow;">Yürüyor</span></p>
+        <b>Durum:</b> <span id="status">Yürüyor</span><br>
+        <span id="pc-hint">PC: W,A,S,D ile gez, F ile bin/in.</span>
     </div>
 
-    <div id="action-btn">F</div>
+    <div id="joystick-zone" class="mobile-ui">
+        <div id="joystick-knob"></div>
+    </div>
+    <div id="action-btn" class="mobile-ui">BİN / İN</div>
 
     <script>
-        // --- TEMEL KURULUM ---
+        // --- 1. SAHNE KURULUMU ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050510);
-        scene.fog = new THREE.FogExp2(0x050510, 0.015);
+        scene.background = new THREE.Color(0x87CEEB); // Mavi gökyüzü (Siyah ekran olmasın diye)
+        scene.fog = new THREE.Fog(0x87CEEB, 10, 100);
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.enabled = true; // Gölgeler açık
         document.body.appendChild(renderer.domElement);
 
-        // --- IŞIKLANDIRMA ---
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Loş ortam
-        scene.add(ambientLight);
+        // Işıklar
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+        scene.add(hemiLight);
 
-        const moonLight = new THREE.DirectionalLight(0xaaccff, 0.5);
-        moonLight.position.set(50, 100, 50);
-        moonLight.castShadow = true;
-        moonLight.shadow.mapSize.width = 2048;
-        moonLight.shadow.mapSize.height = 2048;
-        scene.add(moonLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(50, 100, 50);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
 
-        // --- ŞEHİR OLUŞTURMA (Prosedürel) ---
-        // Zemin
-        const groundGeo = new THREE.PlaneGeometry(2000, 2000);
-        const groundMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.6 });
+        // Zemin (Gridli - Yönü anlamak için)
+        const groundGeo = new THREE.PlaneGeometry(500, 500);
+        const groundMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
         scene.add(ground);
 
-        // Binalar
-        const buildingGeo = new THREE.BoxGeometry(1, 1, 1);
-        // Binalar için rastgele renkler yerine neon şehir tarzı
-        const buildingMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.2 });
-        
-        const cityGroup = new THREE.Group();
-        scene.add(cityGroup);
+        const gridHelper = new THREE.GridHelper(500, 50);
+        scene.add(gridHelper);
 
-        const buildings = [];
-        
-        function createCity() {
-            for(let i=0; i<300; i++) {
-                const h = Math.random() * 20 + 5;
-                const w = Math.random() * 5 + 3;
-                const d = Math.random() * 5 + 3;
-                
-                const mesh = new THREE.Mesh(buildingGeo, buildingMat);
-                mesh.position.x = (Math.random() - 0.5) * 400;
-                mesh.position.z = (Math.random() - 0.5) * 400;
-                
-                // Yolu temiz tut (Merkezde bina olmasın)
-                if(Math.abs(mesh.position.x) < 20) mesh.position.x += 30;
+        // --- 2. OYUNCU VE ARABA OLUŞTURMA ---
 
-                mesh.position.y = h / 2;
-                mesh.scale.set(w, h, d);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                
-                // Neon pencereler (Basit bir numara)
-                if(Math.random() > 0.7) {
-                    const windowLight = new THREE.PointLight(0xff00ff, 1, 20);
-                    windowLight.position.set(mesh.position.x, Math.random() * h, mesh.position.z + d/2 + 0.5);
-                    cityGroup.add(windowLight);
-                }
-
-                cityGroup.add(mesh);
-                buildings.push(mesh); // Çarpışma kontrolü için sakla
-            }
-        }
-        createCity();
-
-        // --- OYUNCU (İNSAN) ---
-        const playerGeo = new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
-        const playerMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc });
-        const player = new THREE.Mesh(playerGeo, playerMat);
-        player.position.set(5, 1.25, 0);
-        player.castShadow = true;
+        // Oyuncu
+        const player = new THREE.Group();
+        const bodyGeo = new THREE.BoxGeometry(0.5, 1.7, 0.5);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff0000 }); // Kırmızı Adam
+        const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+        bodyMesh.position.y = 0.85;
+        bodyMesh.castShadow = true;
+        player.add(bodyMesh);
         scene.add(player);
 
-        // --- ARABA TASARIMI (Low Poly Spor Araba) ---
-        const carGroup = new THREE.Group();
+        // Araba (Basit Geometri ile)
+        const car = new THREE.Group();
         
-        // Gövde
-        const chassisGeo = new THREE.BoxGeometry(2, 0.8, 4.5);
-        const chassisMat = new THREE.MeshStandardMaterial({ color: 0xff0000, metalness: 0.7, roughness: 0.2 });
-        const chassis = new THREE.Mesh(chassisGeo, chassisMat);
-        chassis.position.y = 0.8;
-        chassis.castShadow = true;
-        carGroup.add(chassis);
+        // Araba Gövde
+        const carBody = new THREE.Mesh(
+            new THREE.BoxGeometry(2, 0.5, 4),
+            new THREE.MeshStandardMaterial({ color: 0x0000ff }) // Mavi Araba
+        );
+        carBody.position.y = 0.7;
+        carBody.castShadow = true;
+        car.add(carBody);
 
-        // Üst Kabin
-        const cabinGeo = new THREE.BoxGeometry(1.8, 0.6, 2.5);
-        const cabinMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1 });
-        const cabin = new THREE.Mesh(cabinGeo, cabinMat);
-        cabin.position.y = 1.5;
-        cabin.position.z = -0.2;
-        carGroup.add(cabin);
-
-        // Farlar
-        const headLightL = new THREE.SpotLight(0xffffff, 5, 50, 0.5, 0.5, 1);
-        headLightL.position.set(-0.6, 0.8, 2.2);
-        headLightL.target.position.set(-0.6, 0, 10);
-        carGroup.add(headLightL);
-        carGroup.add(headLightL.target);
-
-        const headLightR = new THREE.SpotLight(0xffffff, 5, 50, 0.5, 0.5, 1);
-        headLightR.position.set(0.6, 0.8, 2.2);
-        headLightR.target.position.set(0.6, 0, 10);
-        carGroup.add(headLightR);
-        carGroup.add(headLightR.target);
+        // Araba Üst
+        const carTop = new THREE.Mesh(
+            new THREE.BoxGeometry(1.5, 0.6, 2),
+            new THREE.MeshStandardMaterial({ color: 0xadd8e6 })
+        );
+        carTop.position.y = 1.3;
+        carTop.position.z = -0.5;
+        car.add(carTop);
 
         // Tekerlekler
         const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 16);
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const wheels = [];
         
-        function createWheel(x, z) {
-            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-            wheel.rotation.z = Math.PI / 2;
-            wheel.position.set(x, 0.4, z);
-            wheel.castShadow = true;
-            carGroup.add(wheel);
-            return wheel;
+        function addWheel(x, z) {
+            const w = new THREE.Mesh(wheelGeo, wheelMat);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(x, 0.4, z);
+            car.add(w);
+            wheels.push(w);
         }
+        addWheel(-1.1, 1.2); addWheel(1.1, 1.2);
+        addWheel(-1.1, -1.2); addWheel(1.1, -1.2);
+
+        car.position.set(5, 0, 5); // Arabanın konumu
+        scene.add(car);
+
+
+        // --- 3. KONTROL MANTIĞI (MOBİL & PC ORTAK) ---
         
-        const wheels = [
-            createWheel(-1.1, 1.5), // Ön Sol
-            createWheel(1.1, 1.5),  // Ön Sağ
-            createWheel(-1.1, -1.5), // Arka Sol
-            createWheel(1.1, -1.5)   // Arka Sağ
-        ];
+        let inputs = { x: 0, y: 0, action: false }; // x: dönüş, y: ileri/geri
+        let gameState = {
+            mode: 'walking', // walking veya driving
+            rotation: 0,
+            speed: 0,
+            camDist: 5,
+            camHeight: 3
+        };
 
-        carGroup.position.set(0, 0, 10);
-        scene.add(carGroup);
-
-        // --- OYUN MANTIĞI & DEĞİŞKENLER ---
-        let mode = 'walking'; // 'walking' veya 'driving'
-        const keys = { w: false, a: false, s: false, d: false, shift: false };
-        
-        // Karakter Değişkenleri
-        let playerSpeed = 0.15;
-        let playerRotation = 0;
-
-        // Araba Değişkenleri
-        let speed = 0;
-        let steering = 0;
-        let maxSpeed = 1.5;
-        let acceleration = 0.02;
-        let friction = 0.98;
-
-        // Kamera Takip Hedefi
-        const cameraOffset = new THREE.Vector3(0, 5, -8); // Arkadan takip
-        let currentCameraPos = new THREE.Vector3();
-
-        // --- KONTROLLER ---
+        // Klavye Dinleyici (PC İçin)
+        const keys = { w: false, a: false, s: false, d: false };
         window.addEventListener('keydown', (e) => {
-            const key = e.key.toLowerCase();
-            if (keys.hasOwnProperty(key)) keys[key] = true;
-            if (key === 'shift') keys.shift = true;
-            
-            // Arabaya Binme / İnme
-            if (key === 'f') toggleVehicle();
+            const k = e.key.toLowerCase();
+            if(keys.hasOwnProperty(k)) keys[k] = true;
+            if(k === 'f') toggleVehicle();
         });
-
         window.addEventListener('keyup', (e) => {
-            const key = e.key.toLowerCase();
-            if (keys.hasOwnProperty(key)) keys[key] = false;
-            if (key === 'shift') keys.shift = false;
+            const k = e.key.toLowerCase();
+            if(keys.hasOwnProperty(k)) keys[k] = false;
         });
 
-        // Mobil Buton Desteği (Basit)
-        const actionBtn = document.getElementById('action-btn');
-        actionBtn.style.display = 'flex'; // Her zaman göster (test için)
-        actionBtn.addEventListener('click', toggleVehicle);
+        // Mobil Tespiti ve UI Gösterimi
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 800;
+        
+        if(isMobile) {
+            document.querySelectorAll('.mobile-ui').forEach(el => el.style.display = 'flex');
+            document.getElementById('pc-hint').style.display = 'none';
+        }
+
+        // --- JOYSTICK MANTIĞI ---
+        const joyZone = document.getElementById('joystick-zone');
+        const joyKnob = document.getElementById('joystick-knob');
+        let joyTouchId = null;
+        let joyCenter = { x: 0, y: 0 };
+
+        joyZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            joyTouchId = touch.identifier;
+            const rect = joyZone.getBoundingClientRect();
+            joyCenter = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+            updateJoystick(touch.clientX, touch.clientY);
+        }, {passive: false});
+
+        joyZone.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            for(let i=0; i<e.changedTouches.length; i++) {
+                if(e.changedTouches[i].identifier === joyTouchId) {
+                    updateJoystick(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+                    break;
+                }
+            }
+        }, {passive: false});
+
+        function endJoystick() {
+            joyTouchId = null;
+            joyKnob.style.transform = `translate(-50%, -50%)`;
+            inputs.x = 0; 
+            inputs.y = 0;
+        }
+
+        joyZone.addEventListener('touchend', endJoystick);
+        joyZone.addEventListener('touchcancel', endJoystick);
+
+        function updateJoystick(clientX, clientY) {
+            let dx = clientX - joyCenter.x;
+            let dy = clientY - joyCenter.y;
+            const maxDist = 40;
+            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
+            const angle = Math.atan2(dy, dx);
+            
+            // Görsel güncelleme
+            const knobX = Math.cos(angle) * dist;
+            const knobY = Math.sin(angle) * dist;
+            joyKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+
+            // Input güncelleme (-1 ile 1 arası)
+            inputs.x = knobX / maxDist; // Sağa sola dönüş
+            inputs.y = -(knobY / maxDist); // İleri geri (Yukarı eksi olduğu için ters çevir)
+        }
+
+        // Aksiyon Butonu (Mobil)
+        document.getElementById('action-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            toggleVehicle();
+        });
+
+
+        // --- 4. OYUN FONKSİYONLARI ---
 
         function toggleVehicle() {
-            const dist = player.position.distanceTo(carGroup.position);
-            
-            if (mode === 'walking') {
-                if (dist < 5) {
-                    mode = 'driving';
-                    player.visible = false; // Karakteri gizle
-                    document.getElementById('status-text').innerText = "Sürüyor";
-                    document.getElementById('status-text').style.color = "cyan";
+            if(gameState.mode === 'walking') {
+                const dist = player.position.distanceTo(car.position);
+                if(dist < 5) {
+                    gameState.mode = 'driving';
+                    player.visible = false;
+                    document.getElementById('status').innerText = "Araba Sürülüyor";
                 }
             } else {
-                mode = 'walking';
-                // Karakteri arabanın yanına koy
-                player.position.copy(carGroup.position);
-                player.position.x += 2.5; 
+                gameState.mode = 'walking';
+                player.position.copy(car.position);
+                player.position.x += 2.5; // Arabanın yanına in
                 player.visible = true;
-                speed = 0; // Arabayı durdur (isteğe bağlı)
-                document.getElementById('status-text').innerText = "Yürüyor";
-                document.getElementById('status-text').style.color = "yellow";
+                gameState.speed = 0; // İnerken arabayı durdur
+                document.getElementById('status').innerText = "Yürüyor";
             }
         }
 
-        // --- ÇARPIŞMA KONTROLÜ (Basit) ---
-        function checkCollision(position) {
-            // Şehir sınırları
-            if(Math.abs(position.x) > 1000 || Math.abs(position.z) > 1000) return true;
-            
-            // Basit bina çarpışması (Box vs Point)
-            // Performans için sadece yakındaki binaları kontrol etmek gerekir ama burada basit tutuyoruz
-            for (let b of buildings) {
-                const box = new THREE.Box3().setFromObject(b);
-                if (box.containsPoint(position)) return true;
-            }
-            return false;
-        }
-
-        // --- OYUN DÖNGÜSÜ ---
+        // --- 5. OYUN DÖNGÜSÜ ---
         function animate() {
             requestAnimationFrame(animate);
 
+            // Girdi Birleştirme (Klavye + Joystick)
+            let moveInput = inputs.y;
+            let turnInput = -inputs.x; // Three.js rotasyonu ters çalışabilir
+
+            if(!isMobile) {
+                if(keys.w) moveInput = 1;
+                if(keys.s) moveInput = -1;
+                if(keys.a) turnInput = 1;
+                if(keys.d) turnInput = -1;
+            }
+
             // --- YÜRÜME MODU ---
-            if (mode === 'walking') {
-                const moveSpeed = keys.shift ? playerSpeed * 1.8 : playerSpeed;
-                const prevPos = player.position.clone();
-
-                if (keys.w) {
-                    player.position.x -= Math.sin(playerRotation) * moveSpeed;
-                    player.position.z -= Math.cos(playerRotation) * moveSpeed;
+            if(gameState.mode === 'walking') {
+                if(Math.abs(moveInput) > 0.1) {
+                    player.translateZ(moveInput * 0.15);
+                    // Yürürken animasyon efekti (zıplama)
+                    player.children[0].position.y = 0.85 + Math.sin(Date.now() * 0.01) * 0.05;
                 }
-                if (keys.s) {
-                    player.position.x += Math.sin(playerRotation) * moveSpeed;
-                    player.position.z += Math.cos(playerRotation) * moveSpeed;
+                if(Math.abs(turnInput) > 0.1) {
+                    player.rotation.y += turnInput * 0.05;
                 }
-                if (keys.a) playerRotation += 0.05;
-                if (keys.d) playerRotation -= 0.05;
 
-                player.rotation.y = playerRotation;
-
-                // Çarpışma varsa geri al
-                if(checkCollision(player.position)) player.position.copy(prevPos);
-
-                // Kamerayı karaktere odakla
-                const targetPos = player.position.clone();
-                targetPos.y += 2;
-                targetPos.x += Math.sin(playerRotation) * 8; // Arkasında dur
-                targetPos.z += Math.cos(playerRotation) * 8;
-                
-                camera.position.lerp(targetPos, 0.1);
+                // Kamera Takibi
+                const relativeCamOffset = new THREE.Vector3(0, 4, 6);
+                const camPos = relativeCamOffset.applyMatrix4(player.matrixWorld);
+                camera.position.lerp(camPos, 0.1);
                 camera.lookAt(player.position);
             }
 
             // --- SÜRÜŞ MODU ---
-            else if (mode === 'driving') {
-                // Hızlanma / Yavaşlama
-                if (keys.w) speed += acceleration;
-                if (keys.s) speed -= acceleration;
-                
-                // Sürtünme
-                speed *= friction;
+            else if(gameState.mode === 'driving') {
+                // Gaz / Fren
+                if(moveInput > 0.1) gameState.speed += 0.01;
+                else if(moveInput < -0.1) gameState.speed -= 0.01;
+                else gameState.speed *= 0.98; // Sürtünme
 
-                // Dönüş (Sadece hareket ederken)
-                if (Math.abs(speed) > 0.01) {
-                    if (keys.a) steering += 0.04;
-                    if (keys.d) steering -= 0.04;
-                }
-                
-                // Direksiyon toparlama
-                steering *= 0.9; 
+                // Max Hız Sınırı
+                gameState.speed = Math.max(Math.min(gameState.speed, 0.8), -0.3);
 
-                // Tekerlek Görsel Dönüşü
-                wheels[0].rotation.y = steering; // Ön Sol
-                wheels[1].rotation.y = steering; // Ön Sağ
-
-                // Araba Hareketi
-                const prevPos = carGroup.position.clone();
-                carGroup.rotation.y += steering * speed; // Araba dönüşü
-                carGroup.position.x -= Math.sin(carGroup.rotation.y) * speed;
-                carGroup.position.z -= Math.cos(carGroup.rotation.y) * speed;
-
-                // Çarpışma Kontrolü
-                if(checkCollision(carGroup.position)) {
-                    carGroup.position.copy(prevPos);
-                    speed *= -0.5; // Geri tepme
+                // Direksiyon (Sadece hareket ederken döner)
+                if(Math.abs(gameState.speed) > 0.01 && Math.abs(turnInput) > 0.1) {
+                    car.rotation.y += turnInput * 0.03 * (gameState.speed > 0 ? 1 : -1);
+                    
+                    // Tekerlek dönüşü
+                    wheels[0].rotation.y = turnInput * 0.5;
+                    wheels[1].rotation.y = turnInput * 0.5;
+                } else {
+                    wheels[0].rotation.y = 0;
+                    wheels[1].rotation.y = 0;
                 }
 
-                // Kamera Takibi (Smooth)
-                const relativeOffset = new THREE.Vector3(0, 6, 12);
-                const cameraOffsetRotated = relativeOffset.applyMatrix4(carGroup.matrixWorld);
-                camera.position.lerp(cameraOffsetRotated, 0.1);
-                camera.lookAt(carGroup.position);
+                // Arabayı ilerlet
+                car.translateZ(gameState.speed);
+
+                // Kamera Takibi (Daha uzak ve esnek)
+                const relativeCamOffset = new THREE.Vector3(0, 6, 10);
+                const camPos = relativeCamOffset.applyMatrix4(car.matrixWorld);
+                camera.position.lerp(camPos, 0.08); // Araba kamerasında biraz daha gecikme (gerçekçilik)
+                camera.lookAt(car.position);
             }
 
             renderer.render(scene, camera);
         }
 
-        // Responsive Ayarı
+        // Ekran Boyutu Değişirse
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
+        // Başlat
         animate();
 
     </script>
