@@ -1,272 +1,324 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrix Architect | Simulation V.1.0</title>
+    <title>Zaha Hadid | Digital Archive</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        /* Matrix Yağmuru Canvas */
-        #matrix-canvas {
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* UI ARAYÜZ KATMANI */
+        #ui {
             position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            opacity: 0.4; /* 3D objenin arkasında hafif görünmesi için */
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            box-sizing: border-box;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        /* 3D Sahne Container */
-        #world {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
+        .header {
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
         }
 
-        /* UI Katmanı */
-        #ui-layer {
-            position: absolute;
-            bottom: 30px;
-            left: 30px;
-            z-index: 3;
-            color: #0F0;
-            text-shadow: 0 0 5px #0F0;
-            pointer-events: none; /* Tıklamaları engelleme */
-        }
+        h1 { margin: 0; font-weight: 300; letter-spacing: 5px; font-size: 24px; text-transform: uppercase; }
+        .sub { font-size: 10px; opacity: 0.7; letter-spacing: 2px; }
 
-        h1 {
-            font-size: 24px;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        p {
+        .stats {
+            align-self: flex-end;
+            text-align: right;
+            color: rgba(255, 255, 255, 0.5);
             font-size: 12px;
-            margin-top: 5px;
-            opacity: 0.8;
+            font-family: monospace;
+            line-height: 1.5;
         }
 
-        .blink {
-            animation: blinker 1s linear infinite;
+        .scan-line {
+            width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, #00ffcc, transparent);
+            position: absolute; top: 50%; left: 0;
+            opacity: 0.2;
         }
 
-        @keyframes blinker {
-            50% { opacity: 0; }
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #00ffcc; font-family: monospace; font-size: 12px;
+            animation: blink 1s infinite;
         }
 
-        #loading-bar {
-            width: 200px;
-            height: 2px;
-            background: #003300;
-            margin-top: 10px;
-            position: relative;
-        }
-
-        #progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: #0F0;
-            width: 0%;
-            animation: load 3s forwards;
-            box-shadow: 0 0 10px #0F0;
-        }
-
-        @keyframes load {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <canvas id="matrix-canvas"></canvas>
+    <div id="loading">GENERATING GEOMETRY...</div>
 
-    <div id="world"></div>
-
-    <div id="ui-layer">
-        <h1>ARCHITECT_SYSTEM <span class="blink">_</span></h1>
-        <p>Target: HEYDAR_ALIYEV_CENTER // PARAMETRIC_DATA</p>
-        <p>Status: RENDERING_SIMULATION...</p>
-        <div id="loading-bar"><div id="progress"></div></div>
+    <div id="ui">
+        <div class="header">
+            <h1>Structure_01</h1>
+            <div class="sub">HEYDAR ALIYEV CENTER // BAKU</div>
+            <div class="sub">PARAMETRIC RECONSTRUCTION</div>
+        </div>
+        <div class="stats">
+            <div>VERTICES: <span id="v-count">0</span></div>
+            <div>POLY COUNT: HIGH</div>
+            <div>RENDERING: WEBGL2</div>
+            <div>SCANNING_SECTOR: <span id="scan-val">00</span></div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 
     <script>
-        // --- BÖLÜM 1: MATRIX YAĞMURU (2D CANVAS) ---
-        const canvas = document.getElementById('matrix-canvas');
-        const ctx = canvas.getContext('2d');
-
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
-
-        const cols = Math.floor(width / 20) + 1;
-        const ypos = Array(cols).fill(0);
-
-        // Matrix karakterleri (Katakana + Latin)
-        const characters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-        function matrixDraw() {
-            ctx.fillStyle = '#0001'; // Arkada iz bırakma efekti
-            ctx.fillRect(0, 0, width, height);
-
-            ctx.fillStyle = '#0F0';
-            ctx.font = '15pt monospace';
-
-            ypos.forEach((y, ind) => {
-                const text = characters.charAt(Math.floor(Math.random() * characters.length));
-                
-                // Bazı harfleri daha parlak yap
-                if (Math.random() > 0.98) {
-                    ctx.fillStyle = '#FFF'; 
-                } else {
-                    ctx.fillStyle = '#0F0';
-                }
-
-                const x = ind * 20;
-                ctx.fillText(text, x, y);
-
-                if (y > 100 + Math.random() * 10000) ypos[ind] = 0;
-                else ypos[ind] = y + 20;
-            });
-        }
-
-        // --- BÖLÜM 2: THREE.JS 3D SAHNE ---
-        const world = document.getElementById('world');
-        
-        // Sahne Kurulumu
+        // --- SAHNE KURULUMU ---
         const scene = new THREE.Scene();
-        // Sahneye hafif sis ekle (derinlik hissi için)
-        scene.fog = new THREE.FogExp2(0x000000, 0.02);
+        scene.background = new THREE.Color(0x020202); // Derin siyah/gri
+        scene.fog = new THREE.FogExp2(0x020202, 0.015);
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 5, 15);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(-30, 15, 40); // Fotoğrafa benzer bir açı
 
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        world.appendChild(renderer.domElement);
+        document.body.appendChild(renderer.domElement);
 
-        // Kontroller (Mouse ile döndürme)
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.5;
+        controls.maxPolarAngle = Math.PI / 2; // Yerin altına girmeyi engelle
 
-        // --- MİMARİ YAPI OLUŞTURMA (Parametrik Dalga) ---
-        // Fotoğraftaki kıvrımlı yapıyı taklit etmek için noktalar (particles) kullanacağız.
+        // --- GELİŞMİŞ GEOMETRİ ALGORİTMASI ---
+        // Zaha Hadid'in yapısını taklit eden özel fonksiyon
         
-        const particleCount = 12000;
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-        const originalY = new Float32Array(particleCount); // Dalgalanma animasyonu için orijinal Y pozisyonlarını sakla
+        // Grid boyutu (Ne kadar yüksek olursa o kadar detaylı)
+        const SEGMENTS_X = 150; 
+        const SEGMENTS_Z = 150;
+        const geometry = new THREE.PlaneGeometry(60, 60, SEGMENTS_X, SEGMENTS_Z);
+        
+        const count = geometry.attributes.position.count;
+        const positions = geometry.attributes.position;
 
-        // Zaha Hadid tarzı bir şekil oluşturmak için matematiksel fonksiyon
-        let i = 0;
-        const size = 30;
-        const step = 0.3;
+        // Geometriyi manipüle et
+        for (let i = 0; i < count; i++) {
+            const x = positions.getX(i);
+            const y = positions.getY(i); // PlaneGeometry'de Y aslında derinliktir, biz Z yapacağız
+            const z = positions.getZ(i); // PlaneGeometry'de Z sıfırdır
 
-        for (let x = -size; x < size; x += step) {
-            for (let z = -size/2; z < size/2; z += step) {
-                if (i >= particleCount) break;
+            // Koordinatları düzelt (Three.js koordinat sistemine göre yatay düzlem)
+            // x = x, y (height) = 0, z = y (from loop)
+            // Bizim için X: Genişlik, Z: Derinlik, Y: Yükseklik olacak.
+            
+            // --- MATEMATİKSEL FORMÜL ---
+            // 1. Temel Dalga (Wave):
+            let height = 0;
 
-                // X ve Z kordinatları
-                positions[i * 3] = x;
-                positions[i * 3 + 2] = z;
+            // Normalize edilmiş koordinatlar (-1 ile 1 arası gibi düşünelim)
+            const nx = x / 30;
+            const nz = y / 30; // Not: PlaneGeometry'nin Y'si bizim Z'miz oluyor
 
-                // Y (Yükseklik) kordinatı - Karmaşık Sinüs/Kosinüs dalgası
-                // Bu fonksiyon fotoğraftaki o büyük kıvrımı simüle etmeye çalışır
-                let y = Math.sin(x * 0.2) * 2 + Math.cos(z * 0.3) * 2;
-                
-                // Merkezdeki tepe noktası (Binanın yüksek kısmı)
-                y += Math.exp(-0.1 * (Math.pow(x - 5, 2) + Math.pow(z, 2))) * 10;
-                
-                // Sol taraftaki kıvrım
-                y += Math.sin(x * 0.5 + z) * 1.5;
+            // Ana Tepe (The Main Peak) - Binanın yüksek camlı kısmı
+            // X ekseninde hafif kayık bir Gaussian eğrisi
+            const peak = 18 * Math.exp(-1.5 * (Math.pow(nx + 0.2, 2) + Math.pow(nz, 2)));
 
-                positions[i * 3 + 1] = y;
-                originalY[i] = y; // Animasyon için referans
-                i++;
+            // Kabuk Kıvrımı (The Shell Curl)
+            // Yere doğru süzülen etek kısımları
+            const wave = 5 * Math.cos(nx * 2.5) * Math.cos(nz * 2.5);
+
+            // Zemin ile birleştirme (Smooth blend)
+            // Kenarlara gittikçe sıfıra yaklaşsın
+            const edgeFactor = Math.max(0, 1 - Math.sqrt(nx*nx + nz*nz));
+            
+            // Asimetrik akış (Fotoğraftaki gibi sol tarafın kıvrılıp inmesi)
+            const asymmetry = Math.sin(nx + nz) * 2;
+
+            // Hepsini birleştir
+            // Formül: Tepe noktası + dalga etkisi, ama kenarlara gidince sönümleniyor.
+            height = (peak + wave * 0.5 + asymmetry) * edgeFactor;
+
+            // Negatif değerleri (yerin altı) düzelt, zemin düz olsun
+            if (height < 0) height = 0;
+
+            // Fotoğraftaki gibi ön yüzün "kesik" ve dik olması için:
+            // Ön tarafa doğru (z pozitifken) eğimi sertleştiriyoruz.
+            if (nz > 0.2 && height > 1) {
+                height *= 1 - (nz - 0.2); 
             }
+
+            // Pozisyonları güncelle
+            positions.setZ(i, y); // Plane'in Y'si Z oluyor
+            positions.setY(i, height); // Yükseklik hesaplanan değer
         }
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.computeVertexNormals();
 
-        // Materyal: Matrix tarzı parlak yeşil noktalar
-        const material = new THREE.PointsMaterial({
-            color: 0x00FF00,
-            size: 0.15,
+        // --- MATERYAL VE GÖRSEL EFEKTLER ---
+
+        // Shader Material: Matrix/Blueprint hissi veren özel materyal
+        // Vertex'lerin yüksekliğine ve tarama çizgisine göre renk değiştirecek.
+        
+        const vertexShader = `
+            varying vec3 vPos;
+            varying float vScan;
+            uniform float uTime;
+            
+            void main() {
+                vPos = position;
+                
+                // Tarama çizgisi efekti (Z ekseninde hareket eder)
+                float scanPos = sin(uTime * 0.5) * 30.0;
+                float dist = abs(position.z - scanPos);
+                
+                // Eğer scan çizgisine yakınsa vScan değeri artar
+                vScan = 1.0 - smoothstep(0.0, 5.0, dist);
+
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+
+        const fragmentShader = `
+            varying vec3 vPos;
+            varying float vScan;
+            
+            void main() {
+                // Temel ızgara rengi (Koyu yeşil/mavi)
+                vec3 baseColor = vec3(0.0, 0.2, 0.2);
+                
+                // Tarama çizgisi rengi (Parlak Cyan/Beyaz)
+                vec3 scanColor = vec3(0.0, 1.0, 0.8);
+                
+                // Yüksekliğe göre hafif renk değişimi
+                float heightGlow = vPos.y / 20.0;
+                baseColor += vec3(0.0, heightGlow * 0.5, heightGlow);
+
+                // Grid çizgileri oluşturma (Wireframe benzeri ama shader ile)
+                // Bu teknik wireframe:true yerine shader içinde grid çizer, daha estetiktir.
+                // Modulo kullanarak çizgileri buluyoruz
+                float gridX = step(0.98, fract(vPos.x * 0.5)); // Sıklık
+                float gridZ = step(0.98, fract(vPos.z * 0.5));
+                float gridLine = max(gridX, gridZ);
+
+                // Renkleri karıştır
+                vec3 finalColor = mix(baseColor * 0.1, baseColor, gridLine);
+                
+                // Tarama ışığını ekle
+                finalColor += scanColor * vScan * gridLine * 2.0;
+                
+                // Sadece çizgileri ve biraz dolguyu göster
+                float alpha = 0.1 + (gridLine * 0.8) + (vScan * 0.5);
+
+                gl_FragColor = vec4(finalColor, alpha);
+            }
+        `;
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 }
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
             transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending
+            side: THREE.DoubleSide,
+            depthWrite: false, // Glow efektleri için önemli
+            blending: THREE.AdditiveBlending // Işıkların üst üste binip parlaması için
         });
 
-        const architectMesh = new THREE.Points(geometry, material);
-        scene.add(architectMesh);
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
 
-        // Alt tarafa bir ızgara (zemin) ekleyelim
-        const gridHelper = new THREE.GridHelper(60, 60, 0x003300, 0x001100);
-        gridHelper.position.y = -5;
-        scene.add(gridHelper);
+        // Zemin Izgarası (Daha geniş perspektif için)
+        const floorGrid = new THREE.GridHelper(200, 50, 0x111111, 0x050505);
+        floorGrid.position.y = -0.1;
+        scene.add(floorGrid);
 
-        // --- ANİMASYON DÖNGÜSÜ ---
-        let time = 0;
+        // --- PARÇACIK EFEKTİ (Veri noktaları) ---
+        // Sadece binanın tepe noktalarına rastgele "veri" noktaları koyalım
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particleCount = 2000;
+        const pArray = new Float32Array(particleCount * 3);
+
+        for(let i=0; i<particleCount * 3; i+=3) {
+            // Rastgele bir nokta seç (geometry içinden)
+            const rIndex = Math.floor(Math.random() * (positions.count));
+            pArray[i] = positions.getX(rIndex);
+            pArray[i+1] = positions.getY(rIndex);
+            pArray[i+2] = positions.getZ(rIndex);
+        }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(pArray, 3));
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0x00ffcc,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.8
+        });
+        const particles = new THREE.Points(particlesGeometry, particleMaterial);
+        scene.add(particles);
+
+
+        // --- POST PROCESSING (BLOOM EFEKTİ / PARLAMA) ---
+        const renderScene = new THREE.RenderPass(scene, camera);
+        
+        // UnrealBloomPass parametreleri: Resolution, Strength, Radius, Threshold
+        const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0;
+        bloomPass.strength = 1.2; // Parlaklık şiddeti
+        bloomPass.radius = 0.5;
+
+        const composer = new THREE.EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+        // --- ANIMASYON ---
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('v-count').innerText = positions.count;
+
+        const clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
 
-            time += 0.01;
+            const elapsedTime = clock.getElapsedTime();
 
-            // 1. Matrix Yağmurunu Çiz
-            matrixDraw();
+            // Shader'a zamanı gönder (Tarama çizgisi için)
+            material.uniforms.uTime.value = elapsedTime;
 
-            // 2. 3D Yapıyı Canlandır (Nefes alma / Veri akışı efekti)
-            const positions = architectMesh.geometry.attributes.position.array;
-
-            for (let j = 0; j < particleCount; j++) {
-                // Her noktanın Y pozisyonunu hafifçe dalgalandır
-                const y = originalY[j];
-                const x = positions[j * 3];
-                
-                // Dijital "glitch" veya dalgalanma efekti
-                positions[j * 3 + 1] = y + Math.sin(time + x * 0.5) * 0.3;
-            }
+            // Hafif kamera hareketi (Nefes alma hissi)
+            mesh.rotation.y = Math.sin(elapsedTime * 0.05) * 0.05;
             
-            architectMesh.geometry.attributes.position.needsUpdate = true;
+            // Parçacıklar hafifçe yukarı süzülsün
+            const pPos = particles.geometry.attributes.position.array;
+            for(let i=1; i<particleCount*3; i+=3) {
+                pPos[i] += 0.01; // Y ekseninde yukarı
+                if (pPos[i] > 20) pPos[i] = 0; // Çok yükselirse sıfırla
+            }
+            particles.geometry.attributes.position.needsUpdate = true;
 
-            // Kamerayı güncelle
+            // UI Güncelleme
+            document.getElementById('scan-val').innerText = Math.floor((Math.sin(elapsedTime) + 1) * 50);
+
             controls.update();
-
-            // 3D Sahneyi Renderla
-            renderer.render(scene, camera);
+            // renderer.render(scene, camera); yerine composer kullanıyoruz
+            composer.render();
         }
 
-        // --- PENCERE BOYUTLANDIRMA ---
+        // Resize
         window.addEventListener('resize', () => {
-            // Matrix Canvas
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            
-            // 3D Kamera
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Başlat
         animate();
 
     </script>
