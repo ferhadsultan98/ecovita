@@ -2,483 +2,449 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realistic Deniz Simülasyonu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Gerçekçi Deniz & Hava Simülasyonu</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            overflow: hidden;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(180deg, #000428 0%, #004e92 50%, #000428 100%);
-            height: 100vh;
-            position: relative;
-        }
-
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100vh;
-            cursor: grab;
-            user-select: none;
-        }
-
-        canvas:active {
-            cursor: grabbing;
-        }
-
-        .controls {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            background: rgba(0,0,0,0.7);
-            padding: 15px;
-            border-radius: 15px;
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        
+        /* UI Arayüzü - Mobil Uyumlu */
+        #ui-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            background: rgba(15, 23, 42, 0.85); /* Glassmorphism koyu */
             backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             font-size: 14px;
         }
 
-        .weather-btn {
+        .control-group label { min-width: 100px; font-weight: 600; color: #94a3b8; }
+        
+        /* Slider Stili */
+        input[type=range] {
+            flex-grow: 1;
+            margin-left: 10px;
+            accent-color: #38bdf8;
+            height: 6px;
             background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            margin: 5px;
-            border-radius: 20px;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #38bdf8;
+            border-radius: 50%;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 12px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
         }
 
-        .weather-btn.active {
-            background: rgba(255,255,255,0.4);
-            transform: scale(1.05);
+        /* Buton Grubu */
+        .weather-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
         }
 
-        .stats {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-            background: rgba(0,0,0,0.7);
-            padding: 15px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
+        .weather-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 10px 5px;
             color: white;
+            border-radius: 8px;
+            cursor: pointer;
             font-size: 12px;
+            transition: all 0.2s;
             text-align: center;
         }
 
-        @media (max-width: 768px) {
-            .controls, .stats {
-                font-size: 11px;
-                padding: 10px;
-            }
-            
-            .weather-btn {
-                padding: 6px 12px;
-                font-size: 10px;
-                margin: 3px;
-            }
+        .weather-btn:active, .weather-btn.active {
+            background: #38bdf8;
+            color: #0f172a;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        /* Gizle/Göster Butonu */
+        #toggle-ui {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    
-    <div class="controls">
-        <div>Hava Durumu:</div>
-        <button class="weather-btn active" data-weather="sunny">☀️ Güneşli</button>
-        <button class="weather-btn" data-weather="foggy">🌫️ Sisli</button>
-        <button class="weather-btn" data-weather="rainy">🌧️ Yağmurlu</button>
-        <button class="weather-btn" data-weather="snowy">❄️ Karlı</button>
-        <button class="weather-btn" data-weather="stormy">⛈️ Fırtınalı</button>
-    </div>
 
-    <div class="stats">
-        <div id="windSpeed">Rüzgar: 12 km/s</div>
-        <div id="waveHeight">Dalga Yükseklik: 1.2m</div>
-        <div id="towerStatus">Kule: Sabit</div>
+    <button id="toggle-ui">⚙️</button>
+
+    <div id="ui-container">
+        <div class="weather-buttons">
+            <button class="weather-btn active" onclick="setWeather('sunny')">☀️ Güneş</button>
+            <button class="weather-btn" onclick="setWeather('night')">🌙 Gece</button>
+            <button class="weather-btn" onclick="setWeather('rain')">🌧️ Yağmur</button>
+            <button class="weather-btn" onclick="setWeather('snow')">❄️ Kar</button>
+            <button class="weather-btn" onclick="setWeather('fog')">🌫️ Sis</button>
+        </div>
+
+        <div class="control-group">
+            <label>Dalga Hızı</label>
+            <input type="range" min="0" max="2" step="0.1" value="0.5" oninput="updateParams('speed', this.value)">
+        </div>
+        <div class="control-group">
+            <label>Dalga Boyu</label>
+            <input type="range" min="0" max="10" step="0.5" value="3" oninput="updateParams('height', this.value)">
+        </div>
+        <div class="control-group">
+            <label>Rüzgar/Türbülans</label>
+            <input type="range" min="0" max="5" step="0.1" value="1" oninput="updateParams('wind', this.value)">
+        </div>
     </div>
 
     <script>
-        class SeaSimulation {
-            constructor() {
-                this.canvas = document.getElementById('canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.resizeCanvas();
-                
-                this.weather = 'sunny';
-                this.windSpeed = 0.5;
-                this.waveHeight = 0.8;
-                this.waveSpeed = 0.02;
-                this.towerSway = 0;
-                
-                this.mouseX = 0;
-                this.mouseY = 0;
-                this.isDragging = false;
-                
-                this.waves = [];
-                this.particles = [];
-                this.foam = [];
-                
-                this.initWaves();
-                this.setupEvents();
-                this.animate();
+        // --- TEMEL KURULUM ---
+        const scene = new THREE.Scene();
+        // Gerçekçi sis (başlangıçta hafif mavi)
+        scene.fog = new THREE.FogExp2(0xaaccff, 0.002);
+        
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 30, 100);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- IŞIKLANDIRMA (Gerçekçilik için) ---
+        const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Genel aydınlık
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(-100, 100, -100);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // --- OKYANUS YAPISI (Shader Material) ---
+        // Özel shader yazarak dalgaların hem rengini hem hareketini simüle ediyoruz.
+        
+        const waterVertexShader = `
+            uniform float uTime;
+            uniform float uSpeed;
+            uniform float uHeight;
+            uniform float uWind;
+            
+            varying vec2 vUv;
+            varying float vElevation;
+
+            // Basit gürültü fonksiyonu (Noise)
+            vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+            float snoise(vec2 v){
+                const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+                        -0.577350269189626, 0.024390243902439);
+                vec2 i  = floor(v + dot(v, C.yy) );
+                vec2 x0 = v -   i + dot(i, C.xx);
+                vec2 i1;
+                i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+                vec4 x12 = x0.xyxy + C.xxzz;
+                x12.xy -= i1;
+                i = mod(i, 289.0);
+                vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+                + i.x + vec3(0.0, i1.x, 1.0 ));
+                vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+                m = m*m ;
+                m = m*m ;
+                vec3 x = 2.0 * fract(p * C.www) - 1.0;
+                vec3 h = abs(x) - 0.5;
+                vec3 ox = floor(x + 0.5);
+                vec3 a0 = x - ox;
+                m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+                vec3 g;
+                g.x  = a0.x  * x0.x  + h.x  * x0.y;
+                g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+                return 130.0 * dot(m, g);
             }
 
-            resizeCanvas() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
+            void main() {
+                vUv = uv;
+                
+                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                
+                // Dalga matematiği: Sinüs dalgaları + Gürültü (Noise)
+                float elevation = sin(modelPosition.x * 0.05 + uTime * uSpeed) * uHeight;
+                elevation += sin(modelPosition.z * 0.03 + uTime * uSpeed * 0.8) * uHeight;
+                
+                // Rüzgar etkisi (küçük detaylar)
+                elevation += snoise(modelPosition.xz * 0.1 * uWind + uTime * uSpeed) * (uHeight * 0.3);
+
+                modelPosition.y += elevation;
+                vElevation = elevation;
+
+                vec4 viewPosition = viewMatrix * modelPosition;
+                vec4 projectedPosition = projectionMatrix * viewPosition;
+                gl_Position = projectedPosition;
+            }
+        `;
+
+        const waterFragmentShader = `
+            uniform vec3 uDepthColor;
+            uniform vec3 uSurfaceColor;
+            uniform float uColorOffset;
+            uniform float uColorMultiplier;
+
+            varying float vElevation;
+
+            void main() {
+                float mixStrength = (vElevation + uColorOffset) * uColorMultiplier;
+                // Derinlik ve yüzey rengini karıştırarak gerçekçi tonlama
+                vec3 color = mix(uDepthColor, uSurfaceColor, mixStrength);
+                gl_FragColor = vec4(color, 0.9);
+            }
+        `;
+
+        const waterGeometry = new THREE.PlaneGeometry(500, 500, 256, 256);
+        const waterMaterial = new THREE.ShaderMaterial({
+            vertexShader: waterVertexShader,
+            fragmentShader: waterFragmentShader,
+            uniforms: {
+                uTime: { value: 0 },
+                uSpeed: { value: 0.5 },
+                uHeight: { value: 3.0 },
+                uWind: { value: 1.0 },
+                uDepthColor: { value: new THREE.Color('#186691') },
+                uSurfaceColor: { value: new THREE.Color('#9bd8ff') },
+                uColorOffset: { value: 2.0 },
+                uColorMultiplier: { value: 0.15 }
+            },
+            transparent: true,
+            side: THREE.DoubleSide,
+            wireframe: false
+        });
+
+        const water = new THREE.Mesh(waterGeometry, waterMaterial);
+        water.rotation.x = -Math.PI / 2;
+        scene.add(water);
+
+        // --- PARÇACIK SİSTEMİ (YAĞMUR & KAR) ---
+        let particles, particleGeo, particleMat;
+        let particleSystemActive = false;
+        let particleType = 'none'; // 'rain', 'snow'
+
+        function createParticles(type) {
+            if(particles) scene.remove(particles);
+            
+            const count = type === 'rain' ? 15000 : 10000;
+            particleGeo = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const velocities = [];
+
+            for(let i=0; i<count*3; i+=3) {
+                positions[i] = (Math.random() - 0.5) * 400; // x
+                positions[i+1] = Math.random() * 200;       // y
+                positions[i+2] = (Math.random() - 0.5) * 400; // z
+                
+                if(type === 'rain') velocities.push({y: -(Math.random() * 2 + 2), x: (Math.random()-0.5)*0.2});
+                else velocities.push({y: -(Math.random() * 0.5 + 0.2), x: (Math.random()-0.5)*1});
             }
 
-            initWaves() {
-                for(let i = 0; i < 5; i++) {
-                    this.waves.push({
-                        amplitude: 40 + Math.random() * 30,
-                        frequency: 0.01 + Math.random() * 0.02,
-                        speed: 0.5 + Math.random() * 0.3,
-                        phase: Math.random() * Math.PI * 2,
-                        color: '#1e3a8a'
-                    });
-                }
-            }
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            // Texture yerine kod ile basit materyal
+            particleMat = new THREE.PointsMaterial({
+                color: type === 'rain' ? 0xaaaaaa : 0xffffff,
+                size: type === 'rain' ? 0.8 : 1.5,
+                transparent: true,
+                opacity: 0.8
+            });
 
-            setupEvents() {
-                window.addEventListener('resize', () => this.resizeCanvas());
-                
-                // Mouse events
-                this.canvas.addEventListener('mousedown', (e) => {
-                    this.isDragging = true;
-                    this.mouseX = e.clientX;
-                    this.mouseY = e.clientY;
-                });
-                
-                this.canvas.addEventListener('mousemove', (e) => {
-                    this.mouseX = e.clientX;
-                    this.mouseY = e.clientY;
-                });
-                
-                this.canvas.addEventListener('mouseup', () => {
-                    this.isDragging = false;
-                });
-                
-                // Touch events for mobile
-                this.canvas.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    this.isDragging = true;
-                    const touch = e.touches[0];
-                    this.mouseX = touch.clientX;
-                    this.mouseY = touch.clientY;
-                });
-                
-                this.canvas.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    this.mouseX = touch.clientX;
-                    this.mouseY = touch.clientY;
-                });
-                
-                this.canvas.addEventListener('touchend', () => {
-                    this.isDragging = false;
-                });
+            particles = new THREE.Points(particleGeo, particleMat);
+            particles.userData = { velocities: velocities, type: type };
+            scene.add(particles);
+            particleSystemActive = true;
+            particleType = type;
+        }
 
-                // Weather buttons
-                document.querySelectorAll('.weather-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        document.querySelectorAll('.weather-btn').forEach(b => b.classList.remove('active'));
-                        e.target.classList.add('active');
-                        this.weather = e.target.dataset.weather;
-                        this.updateWeather();
-                    });
-                });
-            }
-
-            updateWeather() {
-                switch(this.weather) {
-                    case 'sunny':
-                        this.windSpeed = 0.3 + Math.random() * 0.4;
-                        this.waveHeight = 0.6 + Math.random() * 0.4;
-                        break;
-                    case 'foggy':
-                        this.windSpeed = 0.8 + Math.random() * 0.6;
-                        this.waveHeight = 1.0 + Math.random() * 0.5;
-                        break;
-                    case 'rainy':
-                        this.windSpeed = 1.2 + Math.random() * 0.8;
-                        this.waveHeight = 1.5 + Math.random() * 0.7;
-                        break;
-                    case 'snowy':
-                        this.windSpeed = 0.9 + Math.random() * 0.5;
-                        this.waveHeight = 1.2 + Math.random() * 0.6;
-                        break;
-                    case 'stormy':
-                        this.windSpeed = 2.0 + Math.random() * 1.0;
-                        this.waveHeight = 2.5 + Math.random() * 1.5;
-                        break;
-                }
-            }
-
-            createFoam(x, y) {
-                for(let i = 0; i < 3; i++) {
-                    this.foam.push({
-                        x: x + (Math.random() - 0.5) * 50,
-                        y: y + (Math.random() - 0.5) * 20,
-                        vx: (Math.random() - 0.5) * 2 + this.windSpeed * 0.5,
-                        vy: Math.random() * 0.5 - 0.2,
-                        life: 1.0,
-                        size: 2 + Math.random() * 3
-                    });
-                }
-            }
-
-            update() {
-                // Update waves
-                this.waves.forEach(wave => {
-                    wave.phase += (this.waveSpeed + this.windSpeed * 0.5) * 0.02;
-                });
-
-                // Tower sway effect
-                this.towerSway = Math.sin(Date.now() * 0.001 + this.mouseX * 0.001) * 
-                                (this.windSpeed * 5) * 
-                                (this.canvas.height * 0.0003);
-
-                // Create foam particles
-                if(Math.random() < 0.3) {
-                    const waveY = this.getWaveHeight(0);
-                    this.createFoam(this.canvas.width, waveY);
-                }
-
-                // Update foam
-                this.foam = this.foam.filter(p => {
-                    p.x += p.vx + this.windSpeed * 0.3;
-                    p.y += p.vy;
-                    p.life -= 0.02;
-                    p.vy += 0.1;
-                    return p.life > 0 && p.x < this.canvas.width + 50;
-                });
-
-                // Update stats
-                document.getElementById('windSpeed').textContent = 
-                    `Rüzgar: ${Math.round(this.windSpeed * 20)} km/s`;
-                document.getElementById('waveHeight').textContent = 
-                    `Dalga Yükseklik: ${Math.round(this.waveHeight * 10)/10}m`;
-                document.getElementById('towerStatus').textContent = 
-                    `Kule: ${Math.abs(this.towerSway) > 5 ? 'Sallanma!' : 'Sabit'}`;
-            }
-
-            getWaveHeight(x) {
-                let height = 0;
-                this.waves.forEach((wave, i) => {
-                    height += Math.sin(x * wave.frequency + wave.phase) * wave.amplitude * 
-                             (this.waveHeight * 0.5 + 0.5) * (1 - i * 0.2);
-                });
-                return this.canvas.height * 0.65 + height;
-            }
-
-            drawSky() {
-                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height * 0.4);
-                
-                switch(this.weather) {
-                    case 'sunny':
-                        gradient.addColorStop(0, '#87CEEB');
-                        gradient.addColorStop(0.3, '#98D8E8');
-                        gradient.addColorStop(0.6, '#FFD700');
-                        gradient.addColorStop(1, '#FFA500');
-                        break;
-                    case 'foggy':
-                        gradient.addColorStop(0, '#D3D3D3');
-                        gradient.addColorStop(0.5, '#A9A9A9');
-                        gradient.addColorStop(1, '#808080');
-                        break;
-                    case 'rainy':
-                        gradient.addColorStop(0, '#4A5D7A');
-                        gradient.addColorStop(0.5, '#2E3B55');
-                        gradient.addColorStop(1, '#1A2332');
-                        break;
-                    case 'snowy':
-                        gradient.addColorStop(0, '#E0E6ED');
-                        gradient.addColorStop(0.5, '#B8C7D1');
-                        gradient.addColorStop(1, '#8FA6B9');
-                        break;
-                    case 'stormy':
-                        gradient.addColorStop(0, '#2C3E50');
-                        gradient.addColorStop(0.5, '#34495E');
-                        gradient.addColorStop(1, '#1B2631');
-                        break;
-                }
-                
-                this.ctx.fillStyle = gradient;
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height * 0.4);
-            }
-
-            drawSunMoon() {
-                const centerX = this.canvas.width * 0.8;
-                const centerY = this.canvas.height * 0.2;
-                const time = Date.now() * 0.0005;
-                
-                this.ctx.save();
-                this.ctx.translate(centerX + Math.sin(time) * 20, centerY + Math.cos(time) * 10);
-                
-                if(this.weather === 'sunny') {
-                    const sunGradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
-                    sunGradient.addColorStop(0, '#FFD700');
-                    sunGradient.addColorStop(0.5, '#FFA500');
-                    sunGradient.addColorStop(1, 'rgba(255, 165, 0, 0)');
-                    this.ctx.fillStyle = sunGradient;
-                    this.ctx.beginPath();
-                    this.ctx.arc(0, 0, 40, 0, Math.PI * 2);
-                    this.ctx.fill();
-                }
-                
-                this.ctx.restore();
-            }
-
-            drawTower() {
-                this.ctx.save();
-                this.ctx.translate(this.canvas.width * 0.15, this.canvas.height * 0.3 + this.towerSway);
-                
-                // Tower base
-                this.ctx.fillStyle = '#8B4513';
-                this.ctx.fillRect(-25, this.canvas.height * 0.35, 50, 200);
-                
-                // Tower body
-                const towerGradient = this.ctx.createLinearGradient(0, 0, 0, 200);
-                towerGradient.addColorStop(0, '#D2691E');
-                towerGradient.addColorStop(1, '#8B4513');
-                this.ctx.fillStyle = towerGradient;
-                this.ctx.fillRect(-20, this.canvas.height * 0.35 - 150, 40, 350);
-                
-                // Tower top light
-                this.ctx.shadowColor = '#FFFF00';
-                this.ctx.shadowBlur = 30;
-                this.ctx.fillStyle = `rgba(255, 255, 0, ${0.8 + Math.sin(Date.now() * 0.01) * 0.2})`;
-                this.ctx.beginPath();
-                this.ctx.arc(0, this.canvas.height * 0.35 - 180, 15, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                this.ctx.restore();
-            }
-
-            drawWaves() {
-                const points = 400;
-                const waterGradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-                
-                switch(this.weather) {
-                    case 'sunny':
-                        waterGradient.addColorStop(0, 'rgba(13, 71, 161, 0.9)');
-                        waterGradient.addColorStop(0.5, 'rgba(25, 25, 112, 0.95)');
-                        waterGradient.addColorStop(1, 'rgba(0, 0, 50, 1)');
-                        break;
-                    case 'foggy':
-                        waterGradient.addColorStop(0, 'rgba(169, 169, 169, 0.8)');
-                        waterGradient.addColorStop(0.5, 'rgba(128, 128, 128, 0.9)');
-                        waterGradient.addColorStop(1, 'rgba(64, 64, 64, 1)');
-                        break;
-                    default:
-                        waterGradient.addColorStop(0, 'rgba(30, 58, 138, 0.9)');
-                        waterGradient.addColorStop(0.5, 'rgba(15, 29, 69, 0.95)');
-                        waterGradient.addColorStop(1, 'rgba(0, 0, 25, 1)');
-                }
-                
-                for(let i = 0; i < points; i++) {
-                    const x = (i / points) * this.canvas.width;
-                    const baseY = this.getWaveHeight(x);
-                    
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x, baseY);
-                    
-                    // Draw wave surface with highlight
-                    this.ctx.lineTo(
-                        x,
-                        baseY - 20 * this.waveHeight * 0.5
-                    );
-                    
-                    this.ctx.strokeStyle = waterGradient;
-                    this.ctx.lineWidth = 3;
-                    this.ctx.stroke();
-                }
-            }
-
-            drawFoam() {
-                this.foam.forEach(p => {
-                    const alpha = p.life;
-                    this.ctx.save();
-                    this.ctx.globalAlpha = alpha;
-                    
-                    this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
-                    this.ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-                    this.ctx.shadowBlur = 10;
-                    this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    this.ctx.fill();
-                    
-                    this.ctx.restore();
-                });
-            }
-
-            drawWeatherEffects() {
-                // Rain
-                if(this.weather === 'rainy' || this.weather === 'stormy') {
-                    for(let i = 0; i < 100; i++) {
-                        const x = (i * 37) % this.canvas.width;
-                        const y = (Date.now() * 0.3 + i * 13) % this.canvas.height;
-                        this.ctx.strokeStyle = `rgba(174, 194, 224, ${0.6 + Math.random() * 0.4})`;
-                        this.ctx.lineWidth = 1;
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(x, y);
-                        this.ctx.lineTo(x + 5, y + 8);
-                        this.ctx.stroke();
-                    }
-                }
-                
-                // Snow
-                if(this.weather === 'snowy') {
-                    for(let i = 0; i < 80; i++) {
-                        const x = (i * 53 + Date.now() * 0.1) % this.canvas.width;
-                        const y = (Date.now() * 0.2 + i * 17) % this.canvas.height;
-                        const size = 2 + Math.sin(Date.now() * 0.005 + i) * 1;
-                        
-                        this.ctx.save();
-                        this.ctx.globalAlpha = 0.8;
-                        this.ctx.fillStyle = '#FFFFFF';
-                        this.ctx.shadowColor = '#E0E6ED';
-                        this.ctx.shadowBlur = 5;
-                        this.ctx.beginPath();
-                        this.ctx.arc(x, y, size, 0, Math.PI * 2);
-                        this.ctx.fill();
-                        this.ctx.restore();
-                    }
-                }
-            }
-
-            animate() {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                
-                this.drawSky();
-                this.drawSunMoon();
-                this.drawTower();
-                this.drawWaves();
-                this.drawFoam();
-                this.drawWeatherEffects();
-                
-                this.update();
-                
-                requestAnimationFrame(() => this.animate());
+        function removeParticles() {
+            if(particles) {
+                scene.remove(particles);
+                particleSystemActive = false;
+                particleType = 'none';
             }
         }
 
-        // Start simulation
-        window.addEventListener('load', () => {
-            new SeaSimulation();
+        // --- HAVA DURUMU KONTROLÜ ---
+        function setWeather(type) {
+            // Buton stillerini güncelle
+            document.querySelectorAll('.weather-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Varsayılan değerler
+            let fogColor = 0xaaccff;
+            let fogDensity = 0.002;
+            let skyColor = 0x87CEEB;
+            let lightIntensity = 1.2;
+            
+            removeParticles();
+
+            switch(type) {
+                case 'sunny':
+                    skyColor = 0x87CEEB; // Açık mavi
+                    fogColor = 0xaaccff;
+                    fogDensity = 0.002;
+                    waterMaterial.uniforms.uDepthColor.value.set('#186691');
+                    waterMaterial.uniforms.uSurfaceColor.value.set('#9bd8ff');
+                    lightIntensity = 1.5;
+                    break;
+                case 'night':
+                    skyColor = 0x050510; // Koyu lacivert
+                    fogColor = 0x050510;
+                    fogDensity = 0.015;
+                    waterMaterial.uniforms.uDepthColor.value.set('#000000');
+                    waterMaterial.uniforms.uSurfaceColor.value.set('#0f2030');
+                    lightIntensity = 0.1;
+                    break;
+                case 'fog':
+                    skyColor = 0xcccccc; // Gri
+                    fogColor = 0xcccccc;
+                    fogDensity = 0.04; // Yoğun sis
+                    waterMaterial.uniforms.uDepthColor.value.set('#445566');
+                    waterMaterial.uniforms.uSurfaceColor.value.set('#8899aa');
+                    lightIntensity = 0.8;
+                    break;
+                case 'rain':
+                    skyColor = 0x222222;
+                    fogColor = 0x222222;
+                    fogDensity = 0.02;
+                    waterMaterial.uniforms.uDepthColor.value.set('#111111');
+                    waterMaterial.uniforms.uSurfaceColor.value.set('#334455');
+                    lightIntensity = 0.5;
+                    createParticles('rain');
+                    break;
+                case 'snow':
+                    skyColor = 0x8899aa;
+                    fogColor = 0x99aabb;
+                    fogDensity = 0.025;
+                    waterMaterial.uniforms.uDepthColor.value.set('#223344');
+                    waterMaterial.uniforms.uSurfaceColor.value.set('#ddeeff');
+                    lightIntensity = 0.9;
+                    createParticles('snow');
+                    break;
+            }
+
+            // Sahne renklerini yumuşak geçişle değil anlık değiştiriyoruz (performans için)
+            renderer.setClearColor(skyColor);
+            scene.fog.color.setHex(fogColor);
+            scene.fog.density = fogDensity;
+            dirLight.intensity = lightIntensity;
+        }
+
+        // --- PARAMETRE KONTROLÜ (UI) ---
+        window.updateParams = function(param, val) {
+            val = parseFloat(val);
+            if(param === 'speed') waterMaterial.uniforms.uSpeed.value = val;
+            if(param === 'height') waterMaterial.uniforms.uHeight.value = val;
+            if(param === 'wind') waterMaterial.uniforms.uWind.value = val;
+        }
+
+        // --- UI GİZLE/GÖSTER ---
+        const uiContainer = document.getElementById('ui-container');
+        document.getElementById('toggle-ui').addEventListener('click', () => {
+            if(uiContainer.style.opacity === '0') {
+                uiContainer.style.opacity = '1';
+                uiContainer.style.pointerEvents = 'auto';
+            } else {
+                uiContainer.style.opacity = '0';
+                uiContainer.style.pointerEvents = 'none';
+            }
         });
+
+        // --- ANİMASYON DÖNGÜSÜ ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            const elapsedTime = clock.getElapsedTime();
+
+            // Suyu hareket ettir
+            waterMaterial.uniforms.uTime.value = elapsedTime;
+
+            // Parçacıkları hareket ettir (Yağmur/Kar)
+            if(particleSystemActive && particles) {
+                const positions = particles.geometry.attributes.position.array;
+                const velocities = particles.userData.velocities;
+
+                for(let i=0; i < positions.length / 3; i++) {
+                    const idx = i * 3;
+                    // Y ekseninde düşüş
+                    positions[idx+1] += velocities[i].y;
+                    
+                    // X ekseninde rüzgar etkisi (hafif salınım)
+                    if(particleType === 'snow') {
+                         positions[idx] += Math.sin(elapsedTime + positions[idx]) * 0.1;
+                    }
+
+                    // Yere çarparsa (veya ekran dışına çıkarsa) yukarı taşı
+                    if(positions[idx+1] < -10) {
+                        positions[idx+1] = 200;
+                        positions[idx] = (Math.random() - 0.5) * 400; // Rastgele yeni X
+                        positions[idx+2] = (Math.random() - 0.5) * 400; // Rastgele yeni Z
+                    }
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+            }
+
+            // Hafif kamera salınımı (teknedeymiş hissi)
+            camera.position.y += Math.sin(elapsedTime * 0.5) * 0.05;
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        // --- PENCERE BOYUTLANDIRMA (RESPONSIVE) ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Başlangıç ayarları
+        renderer.setClearColor(0x87CEEB); // Gökyüzü rengi
+        animate();
+
     </script>
 </body>
 </html>
